@@ -283,74 +283,139 @@ footer{
 <footer>CityNews · Stockr · GasWizard &nbsp;|&nbsp; 每日自动更新</footer>
 
 <script>
-// ── DATA (auto-replaced by generate_dashboard.py) ─────────────────────────
-const DATA = {
-  "scraped_at": "2026-04-22 13:33",
-  "citynews": {
-    "date": "2026-04-23",
-    "direction": "unchanged",
-    "direction_cents": 0.0,
-    "summary": "预测4.23日均价167.9 cent(s)/litre，维持不变",
-    "predicted_price": 167.9,
-    "history": [
-      {
-        "date": "2026-04-21",
-        "price": 163.9
-      },
-      {
-        "date": "2026-04-20",
-        "price": 163.9
-      },
-      {
-        "date": "2026-04-19",
-        "price": 174.9
-      }
-    ]
-  },
-  "stockr": {
-    "today": 167.9,
-    "tomorrow": 167.9,
-    "today_date": "2026-04-22",
-    "tomorrow_date": "2026-04-23"
-  },
-  "gaswizard": {
-    "tomorrow": {
-      "date": "2026-04-23",
-      "label": "tomorrow",
-      "regular": 167.9,
-      "regular_chg": null,
-      "premium": 197.9,
-      "premium_chg": null,
-      "diesel": 196.9,
-      "diesel_chg": null,
-      "day_name": ""
-    },
-    "today": {
-      "date": "2026-04-22",
-      "label": "today",
-      "regular": 167.9,
-      "regular_chg": null,
-      "premium": 197.9,
-      "premium_chg": null,
-      "diesel": 186.9,
-      "diesel_chg": null,
-      "day_name": ""
-    },
-    "yesterday": {
-      "date": "2026-04-21",
-      "label": "today",
-      "regular": 163.9,
-      "regular_chg": null,
-      "premium": 193.9,
-      "premium_chg": null,
-      "diesel": 181.9,
-      "diesel_chg": null,
-      "day_name": ""
-    }
-  }
-};
+// ══════════════════════════════════════════════════════════
+//  从 gas_prices.csv 读取数据，直接在浏览器渲染
+//  只需保持 gas_prices.csv 更新即可
+// ══════════════════════════════════════════════════════════
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+const CSV_FILE = 'gas_prices.csv';
+
+// ── 日期工具 ───────────────────────────────────────────────
+function today()    { return new Date().toISOString().slice(0,10); }
+function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+function tomorrow() { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+
+function scrapedToday(scraped_at) {
+  if(!scraped_at) return false;
+  return scraped_at.slice(0,10) === today();
+}
+
+// ── CSV 解析 ───────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if(lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    // 处理 summary 字段内可能含逗号（用引号包裹）
+    const vals = [];
+    let cur = '', inQ = false;
+    for(const ch of line) {
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===','&&!inQ){ vals.push(cur); cur=''; }
+      else { cur+=ch; }
+    }
+    vals.push(cur);
+    const row = {};
+    headers.forEach((h,i) => row[h] = (vals[i]||'').trim());
+    return row;
+  });
+}
+
+function toFloat(s) {
+  if(s===''||s===null||s===undefined) return null;
+  const v = parseFloat(s);
+  return isNaN(v) ? null : v;
+}
+
+// ── 查找记录 ────────────────────────────────────────────
+function getRow(rows, source, price_date, requireFresh=false) {
+  const matched = rows.filter(r => r.source===source && r.price_date===price_date);
+  if(!matched.length) return null;
+  // 取 scraped_at 最大的那条
+  const r = matched.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
+  if(requireFresh && !scrapedToday(r.scraped_at)) return null;
+  return r;
+}
+
+// ── 从 CSV rows 构建 DATA 对象 ────────────────────────────
+function buildData(rows) {
+  const td = today(), yd = yesterday(), tm = tomorrow();
+
+  // ── GasWizard ──
+  function gw(target, fresh=false) {
+    const r = getRow(rows, 'gaswizard', target, fresh);
+    if(!r) return null;
+    return {
+      date:        r.price_date,
+      label:       r.label,
+      regular:     toFloat(r.regular),
+      regular_chg: toFloat(r.regular_chg),
+      premium:     toFloat(r.premium),
+      premium_chg: null,
+      diesel:      toFloat(r.diesel),
+      diesel_chg:  null,
+      day_name:    '',
+    };
+  }
+
+  // ── Stockr ──
+  function sk(target) {
+    const r = getRow(rows, 'stockr', target, true);
+    if(!r) return null;
+    const v = toFloat(r.regular);
+    return v;
+  }
+
+  // ── CityNews 预测 ──
+  const cnCandidates = rows.filter(r =>
+    r.source==='citynews' &&
+    r.price_date >= td &&
+    r.label !== 'history'
+  );
+  let cnRow = null;
+  if(cnCandidates.length) {
+    const best = cnCandidates.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
+    if(scrapedToday(best.scraped_at)) cnRow = best;
+  }
+
+  // ── CityNews 历史：label=history，不含今天，最近3条 ──
+  const histRows = rows
+    .filter(r => r.source==='citynews' && r.label==='history' && r.price_date < td)
+    .sort((a,b) => b.price_date.localeCompare(a.price_date))
+    .slice(0, 3);
+
+  // ── 最后更新时间：取所有行 scraped_at 最大值 ──
+  const latestTs = rows.length
+    ? rows.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b).scraped_at.slice(0,16)
+    : '—';
+
+  return {
+    scraped_at: latestTs,
+    citynews: {
+      date:            cnRow ? cnRow.price_date : null,
+      direction:       cnRow ? cnRow.direction  : null,
+      direction_cents: cnRow ? toFloat(cnRow.regular_chg) : null,
+      summary:         cnRow ? cnRow.summary    : null,
+      predicted_price: cnRow ? toFloat(cnRow.regular) : null,
+      history: histRows.map(r => ({date: r.price_date, price: toFloat(r.regular)}))
+                       .filter(h => h.price !== null),
+    },
+    stockr: {
+      today:         sk(td),
+      tomorrow:      sk(tm),
+      today_date:    td,
+      tomorrow_date: tm,
+    },
+    gaswizard: {
+      tomorrow:  gw(tm, true),   // 明天：必须今天抓取
+      today:     gw(td, false),  // 今天：date 匹配即可
+      yesterday: gw(yd, false),  // 昨天：date 匹配即可
+    },
+  };
+}
+
+// ── 渲染函数（与之前完全相同）────────────────────────────
+
 function fmtDate(iso){
   if(!iso)return'';
   const[,m,d]=iso.split('-');
@@ -366,8 +431,7 @@ function chgCls(v){
   return v>0?'pos':'neg';
 }
 
-// ── CityNews ───────────────────────────────────────────────────────────────
-function renderCN(){
+function renderCN(DATA){
   const cn=DATA.citynews, dir=cn.direction||'unchanged';
   const arrows={up:'↑',down:'↓',unchanged:'→'};
   const labels={up:'上涨',down:'下降',unchanged:'不变'};
@@ -375,8 +439,8 @@ function renderCN(){
 
   document.getElementById('cn-bar').className='cn-bar '+dir;
   document.getElementById('cn-pill').className='dir-pill '+dir;
-  document.getElementById('cn-arrow').textContent=arrows[dir];
-  document.getElementById('cn-dir').textContent=labels[dir];
+  document.getElementById('cn-arrow').textContent=arrows[dir]||'→';
+  document.getElementById('cn-dir').textContent=labels[dir]||'—';
 
   const p=cn.predicted_price;
   document.getElementById('cn-price').textContent=p!=null?p.toFixed(1):'—';
@@ -385,14 +449,15 @@ function renderCN(){
   if(c!=null){
     ce.className='chg-tag '+tc[dir];
     ce.textContent=c===0?'n/c':(c>0?'+':'')+c.toFixed(1)+'¢';
+  } else {
+    ce.textContent='';
   }
 
-  // Always-visible 3-day history (newest first, no today)
   const hist=document.getElementById('cn-hist');
   hist.innerHTML='';
   const items=(cn.history||[]).slice(0,3);
-  if(items.length===0){
-    hist.innerHTML='<span style="font-size:.55rem;color:var(--sub);padding:2px 0">暂无历史</span>';
+  if(!items.length){
+    hist.innerHTML='<span style="font-size:.55rem;color:var(--sub)">暂无历史</span>';
     return;
   }
   items.forEach(h=>{
@@ -405,8 +470,7 @@ function renderCN(){
   });
 }
 
-// ── Stockr ─────────────────────────────────────────────────────────────────
-function renderSK(){
+function renderSK(DATA){
   const sk=DATA.stockr;
   document.getElementById('sk-td-d').textContent=fmtDate(sk.today_date);
   document.getElementById('sk-tm-d').textContent=fmtDate(sk.tomorrow_date);
@@ -420,8 +484,7 @@ function renderSK(){
   else{me.textContent='暂无预测';me.className='sk-num empty';}
 }
 
-// ── GasWizard ─────────────────────────────────────────────────────────────
-function renderGW(){
+function renderGW(DATA){
   const gw=DATA.gaswizard, tb=document.getElementById('gw-tbody');
   tb.innerHTML='';
   const rows=[
@@ -434,20 +497,13 @@ function renderGW(){
     {p:'premium', c:'premium_chg'},
     {p:'diesel',  c:'diesel_chg'},
   ];
-
   rows.forEach(({key,label})=>{
     const d=gw[key];
     const tr=document.createElement('tr');
-
-    // Time label cell
     const tt=document.createElement('td');
     tt.className='gw-time';
-    const dayPart=d&&d.day_name?d.day_name.split(' - ')[0]:'';
-    tt.innerHTML=`<div class="gw-tl ${key}">${label}</div>`+
-                 (dayPart?`<div class="gw-day-s">${dayPart}</div>`:'');
+    tt.innerHTML=`<div class="gw-tl ${key}">${label}</div>`;
     tr.appendChild(tt);
-
-    // Fuel price cells
     fuels.forEach(({p,c})=>{
       const td=document.createElement('td');
       td.className='gw-pcell';
@@ -460,16 +516,42 @@ function renderGW(){
       }
       tr.appendChild(td);
     });
-
     tb.appendChild(tr);
   });
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
-document.getElementById('ts').textContent=DATA.scraped_at;
-renderCN();
-renderSK();
-renderGW();
+function showError(msg) {
+  document.getElementById('ts').textContent = '加载失败';
+  document.getElementById('ts').style.color = 'var(--up)';
+  console.error(msg);
+}
+
+// ── 主入口：fetch CSV → 解析 → 渲染 ─────────────────────
+async function init() {
+  document.getElementById('ts').textContent = '加载中…';
+  try {
+    const resp = await fetch(CSV_FILE + '?t=' + Date.now()); // 防缓存
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const text = await resp.text();
+    const rows = parseCSV(text);
+    if(!rows.length) throw new Error('CSV 为空');
+    const DATA = buildData(rows);
+    document.getElementById('ts').textContent = DATA.scraped_at;
+    renderCN(DATA);
+    renderSK(DATA);
+    renderGW(DATA);
+  } catch(e) {
+    showError(e);
+    // 本地文件访问（file://）时 fetch 会失败，提示用户
+    if(location.protocol === 'file:') {
+      document.getElementById('ts').textContent = '请用服务器访问';
+      document.querySelector('.h-ts').title =
+        '直接双击打开 HTML 时无法读取 CSV。\n请用 VS Code Live Server 或 python -m http.server 在本地启动服务器。';
+    }
+  }
+}
+
+init();
 </script>
 </body>
 </html>
