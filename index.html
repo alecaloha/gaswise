@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Toronto Gas</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>GTA FUEL</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -31,9 +31,9 @@ header{
   padding:8px 12px 7px; border-bottom:1px solid var(--bd);
   display:flex; align-items:center; gap:8px; flex-shrink:0;
 }
-.h-title{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:.06em;line-height:1}
-.h-city{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--sub);letter-spacing:.1em}
-.h-ts{margin-left:auto;font-family:'DM Mono',monospace;font-size:.55rem;color:var(--sub);display:flex;align-items:center;gap:4px}
+.h-title{font-family:'Teko',sans-serif;font-weight:700;font-size:2.7rem;letter-spacing:.08em;line-height:1}
+.h-city{font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--sub);letter-spacing:.1em}
+.h-ts{margin-left:auto;font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--sub);display:flex;align-items:center;gap:4px}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--dn);animation:blink 2s infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
@@ -45,7 +45,7 @@ main{
 
 /* ── Src label ───────────────────────────────────────────── */
 .src{
-  font-family:'DM Mono',monospace; font-size:.5rem;
+  font-family:'DM Mono',monospace; font-size:1rem;
   letter-spacing:.14em; text-transform:uppercase; color:var(--sub);
   margin-bottom:3px;
 }
@@ -68,18 +68,18 @@ main{
 .dir-pill{
   display:flex;align-items:center;gap:4px;
   padding:3px 8px 3px 6px;border-radius:100px;
-  font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0;
+  font-size:1.40rem;font-weight:700;white-space:nowrap;flex-shrink:0;
 }
 .dir-pill.up       {background:var(--up-bg);color:var(--up);box-shadow:0 0 8px var(--up-gl)}
 .dir-pill.down     {background:var(--dn-bg);color:var(--dn);box-shadow:0 0 8px var(--dn-gl)}
 .dir-pill.unchanged{background:var(--nc-bg);color:var(--nc);box-shadow:0 0 8px var(--nc-gl)}
-.dir-arrow{font-size:.9rem;line-height:1}
+.dir-arrow{font-size:1.80rem;line-height:1}
 
 .cn-price-wrap{display:flex;align-items:baseline;gap:2px}
-.cn-price{font-family:'Bebas Neue',sans-serif;font-size:1.65rem;line-height:1;letter-spacing:.02em}
-.cn-unit{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--sub)}
+.cn-price{font-family:'Bebas Neue',sans-serif;font-size:3.30rem;line-height:1;letter-spacing:.02em}
+.cn-unit{font-family:'DM Mono',monospace;font-size:1rem;color:var(--sub)}
 
-.chg-tag{font-family:'DM Mono',monospace;font-size:.55rem;padding:1px 4px;border-radius:3px}
+.chg-tag{font-family:'DM Mono',monospace;font-size:1.10rem;padding:1px 4px;border-radius:3px}
 .chg-tag.up{color:var(--up);background:var(--up-bg)}
 .chg-tag.dn{color:var(--dn);background:var(--dn-bg)}
 .chg-tag.nc{color:var(--nc);background:var(--nc-bg)}
@@ -90,9 +90,9 @@ main{
   flex:1; background:var(--surf2); border:1px solid var(--bd);
   border-radius:var(--r-sm); padding:4px 3px; text-align:center;
 }
-.hc-d{font-family:'DM Mono',monospace;font-size:.48rem;color:var(--sub);margin-bottom:2px}
-.hc-p{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.02em}
-.hc-u{font-size:.42rem;color:var(--dim);font-family:'DM Mono',monospace}
+.hc-d{font-family:'DM Mono',monospace;font-size:0.96rem;color:var(--sub);margin-bottom:2px}
+.hc-p{font-family:'Bebas Neue',sans-serif;font-size:1.90rem;letter-spacing:.02em}
+.hc-u{font-size:0.84rem;color:var(--dim);font-family:'DM Mono',monospace}
 
 /* ── Stockr ──────────────────────────────────────────────── */
 .sk-card{padding:8px 10px;display:flex;flex-direction:column;gap:5px;height:100%}
@@ -102,11 +102,11 @@ main{
   background:var(--surf2); border:1px solid var(--bd);
 }
 .sk-row.tmr{border-color:rgba(47,111,224,.22);background:rgba(47,111,224,.04)}
-.sk-lbl{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sub)}
-.sk-ds{font-size:.55rem;color:var(--dim);margin-top:1px}
-.sk-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;letter-spacing:.03em}
-.sk-num.empty{font-size:.85rem;color:var(--sub)}
-.sk-u{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--sub);text-align:right;margin-top:1px}
+.sk-lbl{font-family:'DM Mono',monospace;font-size:1.04rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sub)}
+.sk-ds{font-size:1.10rem;color:var(--dim);margin-top:1px}
+.sk-num{font-family:'Bebas Neue',sans-serif;font-size:3.20rem;line-height:1;letter-spacing:.03em}
+.sk-num.empty{font-size:1.70rem;color:var(--sub)}
+.sk-u{font-family:'DM Mono',monospace;font-size:1rem;color:var(--sub);text-align:right;margin-top:1px}
 
 /* ══════════════════════════════════════════════════════════
    ROW 2 — GasWizard table (compact rows)
@@ -116,7 +116,7 @@ main{
 .gw-table thead tr{background:var(--surf2);border-bottom:1px solid var(--bd2)}
 .gw-table thead th{
   padding:5px 0 5px; font-family:'DM Mono',monospace;
-  font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;
+  font-size:1.04rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--sub);font-weight:400;text-align:center;
 }
 .gw-table thead th:first-child{text-align:left;padding-left:11px;width:28%}
@@ -125,19 +125,19 @@ main{
 .gw-table tbody tr:last-child{border-bottom:none}
 
 .gw-time{padding:0 6px 0 11px;vertical-align:middle}
-.gw-tl{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.gw-tl{font-family:'DM Mono',monospace;font-size:1.10rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
 .gw-tl.tomorrow {color:var(--blue)}
 .gw-tl.today    {color:var(--purple)}
 .gw-tl.yesterday{color:var(--sub)}
-.gw-day-s{font-size:.48rem;color:var(--dim);margin-top:1px;font-style:italic}
+.gw-day-s{font-size:0.96rem;color:var(--dim);margin-top:1px;font-style:italic}
 
 .gw-pcell{text-align:center;vertical-align:middle;padding:7px 3px}
 .gw-p{font-family:'Bebas Neue',sans-serif;letter-spacing:.02em;line-height:1}
-.gw-p.tomorrow {font-size:1.4rem;color:var(--text)}
-.gw-p.today    {font-size:1.25rem;color:rgba(216,226,236,.65)}
-.gw-p.yesterday{font-size:1.1rem; color:rgba(216,226,236,.35)}
-.gw-p.none     {font-size:.8rem;color:var(--sub);font-family:'DM Sans',sans-serif;font-weight:300}
-.gw-chg{font-family:'DM Mono',monospace;font-size:.5rem;margin-top:2px;padding:1px 3px;border-radius:3px;display:inline-block}
+.gw-p.tomorrow {font-size:2.80rem;color:var(--text)}
+.gw-p.today    {font-size:2.50rem;color:rgba(216,226,236,.65)}
+.gw-p.yesterday{font-size:2.20rem; color:rgba(216,226,236,.35)}
+.gw-p.none     {font-size:1.60rem;color:var(--sub);font-family:'DM Sans',sans-serif;font-weight:300}
+.gw-chg{font-family:'DM Mono',monospace;font-size:1rem;margin-top:2px;padding:1px 3px;border-radius:3px;display:inline-block}
 .gw-chg.pos{color:var(--up);background:var(--up-bg)}
 .gw-chg.neg{color:var(--dn);background:var(--dn-bg)}
 .gw-chg.flat{color:var(--nc);background:var(--nc-bg)}
@@ -146,31 +146,25 @@ main{
    AD SLOT — placeholder, replace with real ad later
 ══════════════════════════════════════════════════════════ */
 .ad-wrap{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:2px}
-.ad-slot{
-  flex:1; min-height:80px; max-height:160px;
-  border:1px dashed var(--bd2); border-radius:var(--r);
-  background:var(--surf); overflow:hidden;
-  display:block;
-  position:relative;
-}
+
 /* Decorative gas-station background pattern */
 
 .ad-inner{
   position:relative;z-index:1;
   text-align:center; padding:10px 14px;
 }
-.ad-icon{font-size:1.6rem;line-height:1;margin-bottom:4px;opacity:.35}
+.ad-icon{font-size:3.20rem;line-height:1;margin-bottom:4px;opacity:.35}
 .ad-label{
-  font-family:'DM Mono',monospace; font-size:.52rem;
+  font-family:'DM Mono',monospace; font-size:1.04rem;
   letter-spacing:.12em; text-transform:uppercase;
   color:var(--sub);
 }
-.ad-sub{font-size:.5rem;color:var(--dim);margin-top:2px}
+.ad-sub{font-size:1rem;color:var(--dim);margin-top:2px}
 
 /* ── Footer ──────────────────────────────────────────────── */
 footer{
   padding:5px 10px 7px; font-family:'DM Mono',monospace;
-  font-size:.48rem; color:var(--dim); text-align:center;
+  font-size:0.96rem; color:var(--dim); text-align:center;
   border-top:1px solid var(--bd); flex-shrink:0;
 }
 
@@ -186,8 +180,8 @@ footer{
 
 <header>
   <div>
-    <div class="h-title">GAS PRICE</div>
-    <div class="h-city">TORONTO · GTA</div>
+    <div class="h-title">GTA FUEL</div>
+    <div class="h-city">GTA · 大多伦多油价</div>
   </div>
   <div class="h-ts"><span class="dot"></span><span id="ts">—</span></div>
 </header>
@@ -271,11 +265,14 @@ footer{
     </div>
   </div>
 
-  <!-- AD SLOT -->
-  <div class="ad-wrap a4">
-    <div class="ad-slot" id="ad-slot">
+  <!-- AD SLOTS -->
+  <div class="ad-wrap a4" style="display:flex;flex-direction:column;gap:6px">
+    <a href="https://onflyer.vercel.app" target="_blank" rel="noopener" style="display:block;flex:1;min-height:80px;max-height:160px;border:1px dashed var(--bd2);border-radius:var(--r);overflow:hidden">
       <img src="/images/ad.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
-    </div>
+    </a>
+    <a href="https://onflyer.vercel.app" target="_blank" rel="noopener" style="display:block;flex:1;min-height:80px;max-height:160px;border:1px dashed var(--bd2);border-radius:var(--r);overflow:hidden">
+      <img src="/images/ad2.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
+    </a>
   </div>
 
 </main>
