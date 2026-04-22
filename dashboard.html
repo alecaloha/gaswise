@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Toronto Gas</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#090c0f; --surf:#0f1318; --surf2:#141a22;
+  --bd:#1a2028; --bd2:#232d38;
+  --text:#d8e2ec; --sub:#46566a; --dim:#222d38;
+  --up:#e84040; --up-bg:rgba(232,64,64,.07); --up-gl:rgba(232,64,64,.18);
+  --dn:#18a84e; --dn-bg:rgba(24,168,78,.07);  --dn-gl:rgba(24,168,78,.18);
+  --nc:#c97a05; --nc-bg:rgba(201,122,5,.07);  --nc-gl:rgba(201,122,5,.18);
+  --blue:#2f6fe0; --purple:#8b6ee8;
+  --r:8px; --r-sm:5px;
+}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'DM Sans',sans-serif; font-weight:300;
+  display:flex; flex-direction:column; min-height:100vh;
+  /* 2K phone: ~520px CSS width at 3x DPR */
+  max-width:520px; margin:0 auto;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+header{
+  padding:8px 12px 7px; border-bottom:1px solid var(--bd);
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+.h-title{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:.06em;line-height:1}
+.h-city{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--sub);letter-spacing:.1em}
+.h-ts{margin-left:auto;font-family:'DM Mono',monospace;font-size:.55rem;color:var(--sub);display:flex;align-items:center;gap:4px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--dn);animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── Main ────────────────────────────────────────────────── */
+main{
+  flex:1; padding:8px 10px 6px;
+  display:flex; flex-direction:column; gap:6px;
+}
+
+/* ── Src label ───────────────────────────────────────────── */
+.src{
+  font-family:'DM Mono',monospace; font-size:.5rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--sub);
+  margin-bottom:3px;
+}
+.card{background:var(--surf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+
+/* ══════════════════════════════════════════════════════════
+   ROW 1 — CityNews + Stockr (side-by-side, equal height)
+══════════════════════════════════════════════════════════ */
+.top-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex-shrink:0}
+
+/* ── CityNews ────────────────────────────────────────────── */
+.cn-card{display:grid;grid-template-columns:3px 1fr}
+.cn-bar{background:var(--nc);transition:background .3s}
+.cn-bar.up{background:var(--up)} .cn-bar.down{background:var(--dn)}
+
+.cn-inner{padding:8px 9px;display:flex;flex-direction:column;gap:5px}
+
+/* Direction row: pill + price */
+.cn-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.dir-pill{
+  display:flex;align-items:center;gap:4px;
+  padding:3px 8px 3px 6px;border-radius:100px;
+  font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0;
+}
+.dir-pill.up       {background:var(--up-bg);color:var(--up);box-shadow:0 0 8px var(--up-gl)}
+.dir-pill.down     {background:var(--dn-bg);color:var(--dn);box-shadow:0 0 8px var(--dn-gl)}
+.dir-pill.unchanged{background:var(--nc-bg);color:var(--nc);box-shadow:0 0 8px var(--nc-gl)}
+.dir-arrow{font-size:.9rem;line-height:1}
+
+.cn-price-wrap{display:flex;align-items:baseline;gap:2px}
+.cn-price{font-family:'Bebas Neue',sans-serif;font-size:1.65rem;line-height:1;letter-spacing:.02em}
+.cn-unit{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--sub)}
+
+.chg-tag{font-family:'DM Mono',monospace;font-size:.55rem;padding:1px 4px;border-radius:3px}
+.chg-tag.up{color:var(--up);background:var(--up-bg)}
+.chg-tag.dn{color:var(--dn);background:var(--dn-bg)}
+.chg-tag.nc{color:var(--nc);background:var(--nc-bg)}
+
+/* History: 3 days inline (no toggle) */
+.cn-hist{display:flex;gap:4px;margin-top:2px}
+.hc{
+  flex:1; background:var(--surf2); border:1px solid var(--bd);
+  border-radius:var(--r-sm); padding:4px 3px; text-align:center;
+}
+.hc-d{font-family:'DM Mono',monospace;font-size:.48rem;color:var(--sub);margin-bottom:2px}
+.hc-p{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.02em}
+.hc-u{font-size:.42rem;color:var(--dim);font-family:'DM Mono',monospace}
+
+/* ── Stockr ──────────────────────────────────────────────── */
+.sk-card{padding:8px 10px;display:flex;flex-direction:column;gap:5px;height:100%}
+.sk-row{
+  flex:1; display:flex;align-items:center;justify-content:space-between;
+  padding:6px 8px; border-radius:var(--r-sm);
+  background:var(--surf2); border:1px solid var(--bd);
+}
+.sk-row.tmr{border-color:rgba(47,111,224,.22);background:rgba(47,111,224,.04)}
+.sk-lbl{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sub)}
+.sk-ds{font-size:.55rem;color:var(--dim);margin-top:1px}
+.sk-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;letter-spacing:.03em}
+.sk-num.empty{font-size:.85rem;color:var(--sub)}
+.sk-u{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--sub);text-align:right;margin-top:1px}
+
+/* ══════════════════════════════════════════════════════════
+   ROW 2 — GasWizard table (compact rows)
+══════════════════════════════════════════════════════════ */
+.gw-wrap{flex-shrink:0}
+.gw-table{width:100%;border-collapse:collapse}
+.gw-table thead tr{background:var(--surf2);border-bottom:1px solid var(--bd2)}
+.gw-table thead th{
+  padding:5px 0 5px; font-family:'DM Mono',monospace;
+  font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sub);font-weight:400;text-align:center;
+}
+.gw-table thead th:first-child{text-align:left;padding-left:11px;width:28%}
+.gw-table thead th:not(:first-child){width:24%}
+.gw-table tbody tr{border-bottom:1px solid var(--bd)}
+.gw-table tbody tr:last-child{border-bottom:none}
+
+.gw-time{padding:0 6px 0 11px;vertical-align:middle}
+.gw-tl{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.gw-tl.tomorrow {color:var(--blue)}
+.gw-tl.today    {color:var(--purple)}
+.gw-tl.yesterday{color:var(--sub)}
+.gw-day-s{font-size:.48rem;color:var(--dim);margin-top:1px;font-style:italic}
+
+.gw-pcell{text-align:center;vertical-align:middle;padding:7px 3px}
+.gw-p{font-family:'Bebas Neue',sans-serif;letter-spacing:.02em;line-height:1}
+.gw-p.tomorrow {font-size:1.4rem;color:var(--text)}
+.gw-p.today    {font-size:1.25rem;color:rgba(216,226,236,.65)}
+.gw-p.yesterday{font-size:1.1rem; color:rgba(216,226,236,.35)}
+.gw-p.none     {font-size:.8rem;color:var(--sub);font-family:'DM Sans',sans-serif;font-weight:300}
+.gw-chg{font-family:'DM Mono',monospace;font-size:.5rem;margin-top:2px;padding:1px 3px;border-radius:3px;display:inline-block}
+.gw-chg.pos{color:var(--up);background:var(--up-bg)}
+.gw-chg.neg{color:var(--dn);background:var(--dn-bg)}
+.gw-chg.flat{color:var(--nc);background:var(--nc-bg)}
+
+/* ══════════════════════════════════════════════════════════
+   AD SLOT — placeholder, replace with real ad later
+══════════════════════════════════════════════════════════ */
+.ad-wrap{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:2px}
+.ad-slot{
+  flex:1; min-height:80px; max-height:160px;
+  border:1px dashed var(--bd2); border-radius:var(--r);
+  background:var(--surf); overflow:hidden;
+  display:block;
+  position:relative;
+}
+/* Decorative gas-station background pattern */
+
+.ad-inner{
+  position:relative;z-index:1;
+  text-align:center; padding:10px 14px;
+}
+.ad-icon{font-size:1.6rem;line-height:1;margin-bottom:4px;opacity:.35}
+.ad-label{
+  font-family:'DM Mono',monospace; font-size:.52rem;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--sub);
+}
+.ad-sub{font-size:.5rem;color:var(--dim);margin-top:2px}
+
+/* ── Footer ──────────────────────────────────────────────── */
+footer{
+  padding:5px 10px 7px; font-family:'DM Mono',monospace;
+  font-size:.48rem; color:var(--dim); text-align:center;
+  border-top:1px solid var(--bd); flex-shrink:0;
+}
+
+/* ── Entry animations ────────────────────────────────────── */
+@keyframes fup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fup .35s .04s both}
+.a2{animation:fup .35s .10s both}
+.a3{animation:fup .35s .17s both}
+.a4{animation:fup .35s .24s both}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-title">GAS PRICE</div>
+    <div class="h-city">TORONTO · GTA</div>
+  </div>
+  <div class="h-ts"><span class="dot"></span><span id="ts">—</span></div>
+</header>
+
+<main>
+
+  <!-- ROW 1: CityNews + Stockr -->
+  <div class="top-row">
+
+    <!-- CityNews -->
+    <div class="a1" style="display:flex;flex-direction:column">
+      <div class="src">CityNews</div>
+      <div class="card cn-card" id="cn-card" style="flex:1">
+        <div class="cn-bar" id="cn-bar"></div>
+        <div class="cn-inner">
+          <div class="cn-top">
+            <div class="dir-pill" id="cn-pill">
+              <span class="dir-arrow" id="cn-arrow"></span>
+              <span id="cn-dir"></span>
+            </div>
+            <div>
+              <div class="cn-price-wrap">
+                <span class="cn-price" id="cn-price">—</span>
+                <span class="cn-unit">¢/L</span>
+              </div>
+              <div style="text-align:right;margin-top:1px">
+                <span class="chg-tag" id="cn-chg"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Always-visible 3-day history (excluding today) -->
+          <div class="cn-hist" id="cn-hist"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stockr -->
+    <div class="a2">
+      <div class="src">Stockr</div>
+      <div class="card sk-card">
+        <div class="sk-row">
+          <div>
+            <div class="sk-lbl">今天</div>
+            <div class="sk-ds" id="sk-td-d"></div>
+          </div>
+          <div style="text-align:right">
+            <div class="sk-num" id="sk-td">—</div>
+            <div class="sk-u">¢/L</div>
+          </div>
+        </div>
+        <div class="sk-row tmr">
+          <div>
+            <div class="sk-lbl" style="color:var(--blue)">明天</div>
+            <div class="sk-ds" id="sk-tm-d"></div>
+          </div>
+          <div style="text-align:right">
+            <div class="sk-num" id="sk-tm">—</div>
+            <div class="sk-u">¢/L</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /top-row -->
+
+  <!-- ROW 2: GasWizard table -->
+  <div class="gw-wrap a3">
+    <div class="src">GasWizard</div>
+    <div class="card">
+      <table class="gw-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>REG</th>
+            <th>PREM</th>
+            <th>DIESEL</th>
+          </tr>
+        </thead>
+        <tbody id="gw-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AD SLOT -->
+  <div class="ad-wrap a4">
+    <div class="ad-slot" id="ad-slot">
+      <img src="ad.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
+    </div>
+  </div>
+
+</main>
+
+<footer>CityNews · Stockr · GasWizard &nbsp;|&nbsp; 每日自动更新</footer>
+
+<script>
+// ── DATA (auto-replaced by generate_dashboard.py) ─────────────────────────
+const DATA = {
+  "scraped_at": "2026-04-22 13:33",
+  "citynews": {
+    "date": "2026-04-23",
+    "direction": "unchanged",
+    "direction_cents": 0.0,
+    "summary": "预测4.23日均价167.9 cent(s)/litre，维持不变",
+    "predicted_price": 167.9,
+    "history": [
+      {
+        "date": "2026-04-21",
+        "price": 163.9
+      },
+      {
+        "date": "2026-04-20",
+        "price": 163.9
+      },
+      {
+        "date": "2026-04-19",
+        "price": 174.9
+      }
+    ]
+  },
+  "stockr": {
+    "today": 167.9,
+    "tomorrow": 167.9,
+    "today_date": "2026-04-22",
+    "tomorrow_date": "2026-04-23"
+  },
+  "gaswizard": {
+    "tomorrow": {
+      "date": "2026-04-23",
+      "label": "tomorrow",
+      "regular": 167.9,
+      "regular_chg": null,
+      "premium": 197.9,
+      "premium_chg": null,
+      "diesel": 196.9,
+      "diesel_chg": null,
+      "day_name": ""
+    },
+    "today": {
+      "date": "2026-04-22",
+      "label": "today",
+      "regular": 167.9,
+      "regular_chg": null,
+      "premium": 197.9,
+      "premium_chg": null,
+      "diesel": 186.9,
+      "diesel_chg": null,
+      "day_name": ""
+    },
+    "yesterday": {
+      "date": "2026-04-21",
+      "label": "today",
+      "regular": 163.9,
+      "regular_chg": null,
+      "premium": 193.9,
+      "premium_chg": null,
+      "diesel": 181.9,
+      "diesel_chg": null,
+      "day_name": ""
+    }
+  }
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function fmtDate(iso){
+  if(!iso)return'';
+  const[,m,d]=iso.split('-');
+  return['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m]+' '+ +d;
+}
+function chgStr(v){
+  if(v===null||v===undefined)return null;
+  if(v===0)return'n/c';
+  return(v>0?'+':'')+v.toFixed(1)+'¢';
+}
+function chgCls(v){
+  if(v===null||v===undefined||v===0)return'flat';
+  return v>0?'pos':'neg';
+}
+
+// ── CityNews ───────────────────────────────────────────────────────────────
+function renderCN(){
+  const cn=DATA.citynews, dir=cn.direction||'unchanged';
+  const arrows={up:'↑',down:'↓',unchanged:'→'};
+  const labels={up:'上涨',down:'下降',unchanged:'不变'};
+  const tc={up:'up',down:'dn',unchanged:'nc'};
+
+  document.getElementById('cn-bar').className='cn-bar '+dir;
+  document.getElementById('cn-pill').className='dir-pill '+dir;
+  document.getElementById('cn-arrow').textContent=arrows[dir];
+  document.getElementById('cn-dir').textContent=labels[dir];
+
+  const p=cn.predicted_price;
+  document.getElementById('cn-price').textContent=p!=null?p.toFixed(1):'—';
+
+  const ce=document.getElementById('cn-chg'), c=cn.direction_cents;
+  if(c!=null){
+    ce.className='chg-tag '+tc[dir];
+    ce.textContent=c===0?'n/c':(c>0?'+':'')+c.toFixed(1)+'¢';
+  }
+
+  // Always-visible 3-day history (newest first, no today)
+  const hist=document.getElementById('cn-hist');
+  hist.innerHTML='';
+  const items=(cn.history||[]).slice(0,3);
+  if(items.length===0){
+    hist.innerHTML='<span style="font-size:.55rem;color:var(--sub);padding:2px 0">暂无历史</span>';
+    return;
+  }
+  items.forEach(h=>{
+    const el=document.createElement('div');
+    el.className='hc';
+    el.innerHTML=`<div class="hc-d">${fmtDate(h.date)}</div>`+
+                 `<div class="hc-p">${h.price.toFixed(1)}</div>`+
+                 `<div class="hc-u">¢/L</div>`;
+    hist.appendChild(el);
+  });
+}
+
+// ── Stockr ─────────────────────────────────────────────────────────────────
+function renderSK(){
+  const sk=DATA.stockr;
+  document.getElementById('sk-td-d').textContent=fmtDate(sk.today_date);
+  document.getElementById('sk-tm-d').textContent=fmtDate(sk.tomorrow_date);
+
+  const te=document.getElementById('sk-td');
+  if(sk.today!=null){te.textContent=sk.today.toFixed(1);te.className='sk-num';}
+  else{te.textContent='暂无预测';te.className='sk-num empty';}
+
+  const me=document.getElementById('sk-tm');
+  if(sk.tomorrow!=null){me.textContent=sk.tomorrow.toFixed(1);me.className='sk-num';}
+  else{me.textContent='暂无预测';me.className='sk-num empty';}
+}
+
+// ── GasWizard ─────────────────────────────────────────────────────────────
+function renderGW(){
+  const gw=DATA.gaswizard, tb=document.getElementById('gw-tbody');
+  tb.innerHTML='';
+  const rows=[
+    {key:'tomorrow',label:'明天'},
+    {key:'today',   label:'今天'},
+    {key:'yesterday',label:'昨天'},
+  ];
+  const fuels=[
+    {p:'regular', c:'regular_chg'},
+    {p:'premium', c:'premium_chg'},
+    {p:'diesel',  c:'diesel_chg'},
+  ];
+
+  rows.forEach(({key,label})=>{
+    const d=gw[key];
+    const tr=document.createElement('tr');
+
+    // Time label cell
+    const tt=document.createElement('td');
+    tt.className='gw-time';
+    const dayPart=d&&d.day_name?d.day_name.split(' - ')[0]:'';
+    tt.innerHTML=`<div class="gw-tl ${key}">${label}</div>`+
+                 (dayPart?`<div class="gw-day-s">${dayPart}</div>`:'');
+    tr.appendChild(tt);
+
+    // Fuel price cells
+    fuels.forEach(({p,c})=>{
+      const td=document.createElement('td');
+      td.className='gw-pcell';
+      if(!d||d[p]==null){
+        td.innerHTML=`<div class="gw-p none">—</div>`;
+      } else {
+        const cs=chgStr(d[c]), cc=chgCls(d[c]);
+        td.innerHTML=`<div class="gw-p ${key}">${d[p].toFixed(1)}</div>`+
+                     (cs!=null?`<div class="gw-chg ${cc}">${cs}</div>`:'');
+      }
+      tr.appendChild(td);
+    });
+
+    tb.appendChild(tr);
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.getElementById('ts').textContent=DATA.scraped_at;
+renderCN();
+renderSK();
+renderGW();
+</script>
+</body>
+</html>
