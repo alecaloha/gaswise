@@ -198,11 +198,15 @@ footer{
         <div class="cn-bar" id="cn-bar"></div>
         <div class="cn-inner">
           <div class="cn-top">
-            <div class="dir-pill" id="cn-pill">
-              <span class="dir-arrow" id="cn-arrow"></span>
-              <span id="cn-dir"></span>
+            <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
+              <span id="cn-left-lbl" style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--sub);letter-spacing:.04em">明天价格变化</span>
+              <div class="dir-pill" id="cn-pill">
+                <span class="dir-arrow" id="cn-arrow"></span>
+                <span id="cn-dir"></span>
+              </div>
             </div>
-            <div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+              <span id="cn-right-lbl" style="font-family:'DM Mono',monospace;font-size:.88rem;color:var(--sub);letter-spacing:.04em">明天均价</span>
               <div class="cn-price-wrap">
                 <span class="cn-price" id="cn-price">—</span>
                 <span class="cn-unit">¢/L</span>
@@ -267,11 +271,11 @@ footer{
 
   <!-- AD SLOTS -->
   <div class="ad-wrap a4" style="display:flex;flex-direction:column;gap:6px">
-    <a href="https://www.gasbuddy.com/gasprices/ontario" target="_blank" rel="noopener" style="display:block;flex:1;min-height:80px;max-height:160px;border:1px dashed var(--bd2);border-radius:var(--r);overflow:hidden">
-      <img src="/images/ad.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
+    <a href="https://onflyer.vercel.app" target="_blank" rel="noopener" style="display:block;flex:1;min-height:80px;max-height:160px;border:1px dashed var(--bd2);border-radius:var(--r);overflow:hidden">
+      <img src="ad.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
     </a>
     <a href="https://onflyer.vercel.app" target="_blank" rel="noopener" style="display:block;flex:1;min-height:80px;max-height:160px;border:1px dashed var(--bd2);border-radius:var(--r);overflow:hidden">
-      <img src="/images/ad2.png" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
+      <img src="ad2.jpg" alt="advertisement" style="width:100%;height:100%;object-fit:cover;display:block">
     </a>
   </div>
 
@@ -338,36 +342,45 @@ function getRow(rows, source, price_date, requireFresh=false) {
 function buildData(rows) {
   const td = today(), yd = yesterday(), tm = tomorrow();
 
-  // ── GasWizard ──
-  function gw(target, fresh=false) {
-    const r = getRow(rows, 'gaswizard', target, fresh);
-    if(!r) return null;
+  // ── GasWizard ──────────────────────────────────────────
+  // tomorrow: scraped_at >= 昨天（当天或前晚发布的预测都算有效）
+  // today/yesterday: price_date 匹配即可，无时效限制
+  function gw(target, isTomorrow=false) {
+    const matched = rows.filter(r => r.source==='gaswizard' && r.price_date===target);
+    if(!matched.length) return null;
+    const r = matched.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
+    if(isTomorrow) {
+      // 超过2天前的旧预测不显示
+      const cutoff = yd; // 昨天日期字符串
+      if(r.scraped_at.slice(0,10) < cutoff) return null;
+    }
     return {
       date:        r.price_date,
-      label:       r.label,
       regular:     toFloat(r.regular),
       regular_chg: toFloat(r.regular_chg),
       premium:     toFloat(r.premium),
-      premium_chg: null,
       diesel:      toFloat(r.diesel),
-      diesel_chg:  null,
-      day_name:    '',
     };
   }
 
-  // ── Stockr ──
-  function sk(target) {
-    const r = getRow(rows, 'stockr', target, true);
-    if(!r) return null;
-    const v = toFloat(r.regular);
-    return v;
+  // ── Stockr ─────────────────────────────────────────────
+  // today:    price_date 匹配即可（实际价格，无时效限制）
+  // tomorrow: 必须今天抓取（预测值）
+  function sk(target, requireFresh=false) {
+    const matched = rows.filter(r => r.source==='stockr' && r.price_date===target);
+    if(!matched.length) return null;
+    const r = matched.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
+    if(requireFresh && !scrapedToday(r.scraped_at)) return null;
+    return toFloat(r.regular);
   }
 
-  // ── CityNews 预测 ──
+  // ── CityNews 预测 ────────────────────────────────────
+  // 不依赖 label，按 price_date 和 summary 字段判断是否为预测行
+  // 预测行：有 summary（非空）且 price_date >= today
   const cnCandidates = rows.filter(r =>
     r.source==='citynews' &&
     r.price_date >= td &&
-    r.label !== 'history'
+    r.summary && r.summary.trim() !== ''
   );
   let cnRow = null;
   if(cnCandidates.length) {
@@ -375,17 +388,17 @@ function buildData(rows) {
     if(scrapedToday(best.scraped_at)) cnRow = best;
   }
 
-  // ── CityNews 历史：label=history，不含今天，最近3条 ──
+  // ── CityNews 历史 ────────────────────────────────────
+  // 历史行：price_date < today 且 summary 为空（纯历史价格记录）
   const histRows = rows
-    .filter(r => r.source==='citynews' && r.label==='history' && r.price_date < td)
+    .filter(r => r.source==='citynews' && r.price_date < td && !r.summary)
     .sort((a,b) => b.price_date.localeCompare(a.price_date))
     .slice(0, 3);
 
-  // ── 最后更新时间：取所有行 scraped_at 最大值 ──
+  // ── 最后更新时间 ──────────────────────────────────────
   const latestTs = rows.length
     ? (()=>{
       const raw = rows.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b).scraped_at;
-      // raw format: "2026-04-21 13:15:00"
       const [datePart, timePart] = raw.split(' ');
       const [,mm,dd] = datePart.split('-');
       const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -397,10 +410,18 @@ function buildData(rows) {
     })()
     : '—';
 
+  // CityNews 预测针对的日期标签（今天还是明天）
+  let cnDateLabel = null;
+  if(cnRow) {
+    const delta = (new Date(cnRow.price_date) - new Date(td)) / 86400000;
+    cnDateLabel = delta <= 0 ? '今天' : '明天';
+  }
+
   return {
     scraped_at: latestTs,
     citynews: {
       date:            cnRow ? cnRow.price_date : null,
+      date_label:      cnDateLabel,
       direction:       cnRow ? cnRow.direction  : null,
       direction_cents: cnRow ? toFloat(cnRow.regular_chg) : null,
       summary:         cnRow ? cnRow.summary    : null,
@@ -409,15 +430,15 @@ function buildData(rows) {
                        .filter(h => h.price !== null),
     },
     stockr: {
-      today:         sk(td),
-      tomorrow:      sk(tm),
+      today:         sk(td, false),  // 实际价格，不需要今日抓取
+      tomorrow:      sk(tm, true),   // 预测，必须今天抓取
       today_date:    td,
       tomorrow_date: tm,
     },
     gaswizard: {
-      tomorrow:  gw(tm, true),   // 明天：必须今天抓取
-      today:     gw(td, false),  // 今天：date 匹配即可
-      yesterday: gw(yd, false),  // 昨天：date 匹配即可
+      tomorrow:  gw(tm, true),   // 近2天内抓取的预测
+      today:     gw(td, false),  // 今天实际价格
+      yesterday: gw(yd, false),  // 昨天实际价格
     },
   };
 }
@@ -460,6 +481,14 @@ function renderCN(DATA){
   } else {
     ce.textContent='';
   }
+
+  // 左侧显示"明天"标签（价格变化相对于明天）
+  // 右侧显示"明天均价"标签
+  const lbl = cn.date_label || '明天';
+  const leftLbl  = document.getElementById('cn-left-lbl');
+  const rightLbl = document.getElementById('cn-right-lbl');
+  if(leftLbl)  leftLbl.textContent  = lbl + '价格变化';
+  if(rightLbl) rightLbl.textContent = lbl + '均价';
 
   const hist=document.getElementById('cn-hist');
   hist.innerHTML='';
