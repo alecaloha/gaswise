@@ -364,23 +364,20 @@ function buildData(rows) {
   }
 
   // ── Stockr ─────────────────────────────────────────────
-  // today:    price_date 匹配即可（实际价格，无时效限制）
-  // tomorrow: 必须今天抓取（预测值）
-  function sk(target, requireFresh=false) {
+  // today/tomorrow: 只要 price_date 匹配 + price 非空即显示
+  // （Stockr 今天的 today 和 tomorrow 都是当天发布的实际/预测价）
+  function sk(target) {
     const matched = rows.filter(r => r.source==='stockr' && r.price_date===target);
     if(!matched.length) return null;
     const r = matched.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
-    if(requireFresh && !scrapedToday(r.scraped_at)) return null;
     return toFloat(r.regular);
   }
 
-  // ── CityNews 预测 ────────────────────────────────────
-  // 不依赖 label，按 price_date 和 summary 字段判断是否为预测行
-  // 预测行：有 summary（非空）且 price_date >= today
+  // ── CityNews 预测行：label==='prediction' 精确过滤 ──
   const cnCandidates = rows.filter(r =>
     r.source==='citynews' &&
-    r.price_date >= td &&
-    r.summary && r.summary.trim() !== ''
+    r.label==='prediction' &&
+    r.price_date >= td
   );
   let cnRow = null;
   if(cnCandidates.length) {
@@ -388,10 +385,9 @@ function buildData(rows) {
     if(scrapedToday(best.scraped_at)) cnRow = best;
   }
 
-  // ── CityNews 历史 ────────────────────────────────────
-  // 历史行：price_date < today 且 summary 为空（纯历史价格记录）
+  // ── CityNews 历史行：label==='history' ────────────────
   const histRows = rows
-    .filter(r => r.source==='citynews' && r.price_date < td && !r.summary)
+    .filter(r => r.source==='citynews' && r.label==='history' && r.price_date < td)
     .sort((a,b) => b.price_date.localeCompare(a.price_date))
     .slice(0, 3);
 
@@ -430,8 +426,8 @@ function buildData(rows) {
                        .filter(h => h.price !== null),
     },
     stockr: {
-      today:         sk(td, false),  // 实际价格，不需要今日抓取
-      tomorrow:      sk(tm, true),   // 预测，必须今天抓取
+      today:         sk(td),
+      tomorrow:      sk(tm),
       today_date:    td,
       tomorrow_date: tm,
     },
