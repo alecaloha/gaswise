@@ -1,32 +1,17 @@
 """
 Toronto Gas Price Scraper
 =========================
-抓取多个来源的多伦多油价预测，写入单一 CSV 文件。
+GasWizard : 照搬 deep.py  (requests + html.parser + CSS class)
+Stockr    : 照搬 seep.py  (Playwright + inner_text + 正则)
+CityNews  : 正则解析预测句（原有稳定逻辑）
 
-来源:
-  1. gaswizard.ca        — 明天/今天/昨天  Regular / Premium / Diesel
-  2. stockr.net          — 今天/明天 Regular 预测价
-  3. toronto.citynews.ca — 预测方向、均价、摘要
-
-运行方式:
-  pip install requests beautifulsoup4 lxml
+运行:
+  pip install requests playwright beautifulsoup4 lxml
+  playwright install chromium
   python scraper.py
-
-输出文件: gas_prices.csv（自动创建/追加，同 source+price_date 自动去重覆盖）
-
-CSV 列说明:
-  scraped_at   抓取时间 YYYY-MM-DD HH:MM:SS
-  source       gaswizard / stockr / citynews
-  price_date   价格对应日期 YYYY-MM-DD
-  label        tomorrow / today / yesterday（仅 gaswizard）
-  regular      普通汽油 cents/L
-  premium      高级汽油 cents/L（仅 gaswizard，其余空）
-  diesel       柴油 cents/L（仅 gaswizard，其余空）
-  regular_chg  普通油涨跌量（仅 gaswizard）
-  direction    up / down / unchanged（仅 citynews）
-  summary      预测摘要（仅 citynews）
 """
 
+import asyncio
 import csv
 import re
 import time
@@ -41,7 +26,6 @@ from bs4 import BeautifulSoup
 
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
-# ── 日志 ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -53,7 +37,6 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 CSV_PATH = Path("gas_prices.csv")
-
 CSV_COLUMNS = [
     "scraped_at", "source", "price_date", "label",
     "regular", "premium", "diesel", "regular_chg",
@@ -62,380 +45,382 @@ CSV_COLUMNS = [
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  CSV 读写层（替代 SQLite）
+#  CSV 读写
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _load_csv() -> list[dict]:
-    """读取 CSV，返回行列表。文件不存在时返回空列表。"""
+def _load_csv():
     if not CSV_PATH.exists():
         return []
-    with open(CSV_PATH, newline="", encoding="utf-8") as f:
+    with open(CSV_PATH, newline="", encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
 
 
-def _save_csv(rows: list[dict]) -> None:
-    """将行列表写回 CSV（覆盖整个文件）。"""
-    with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
-        writer.writeheader()
-        writer.writerows(rows)
+def _save_csv(rows):
+    with open(CSV_PATH, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
+        w.writeheader()
+        w.writerows(rows)
 
 
-def upsert_row(new_row: dict) -> None:
-    """
-    插入或更新一条记录。
-    去重键: (source, price_date) — 同来源同日期只保留最新一条。
-    """
+def upsert_row(new_row: dict):
+    """同 source+price_date 只保留最新一条。"""
     rows = _load_csv()
-    key = (new_row["source"], new_row["price_date"])
-    # 过滤掉相同键的旧行
+    key  = (new_row["source"], new_row["price_date"])
     rows = [r for r in rows if (r["source"], r["price_date"]) != key]
-    # 补齐缺失列为空字符串
     filled = {col: new_row.get(col, "") for col in CSV_COLUMNS}
     rows.append(filled)
-    # 按 price_date 降序、source 排序，保持文件整洁
     rows.sort(key=lambda r: (r["price_date"], r["source"]), reverse=True)
     _save_csv(rows)
 
 
-def read_rows(source: str = None, price_date: str = None) -> list[dict]:
-    """
-    读取记录，可按 source 和/或 price_date 过滤。
-    """
-    rows = _load_csv()
-    if source:
-        rows = [r for r in rows if r["source"] == source]
-    if price_date:
-        rows = [r for r in rows if r["price_date"] == price_date]
-    return rows
-
-
-def _val(s: str):
-    """把 CSV 空字符串转为 None，数字字符串转为 float。"""
+def _val(s):
     if s == "" or s is None:
         return None
     try:
         return float(s)
-    except ValueError:
+    except (ValueError, TypeError):
         return s
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  时效检查
-# ═══════════════════════════════════════════════════════════════════════════
-
-def _scraped_today(scraped_at_str: str) -> bool:
-    if not scraped_at_str:
-        return False
-    try:
-        return datetime.fromisoformat(scraped_at_str).date() == date.today()
-    except ValueError:
-        return False
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  HTTP 工具
-# ═══════════════════════════════════════════════════════════════════════════
-
-UA_POOL = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
-]
-
-
-def make_session(referer: str = "https://www.google.com/") -> requests.Session:
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": random.choice(UA_POOL),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-CA,en-US;q=0.9,en;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Referer": referer,
-        "Cache-Control": "no-cache",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "cross-site",
-        "Sec-Fetch-User": "?1",
-        "DNT": "1",
-    })
-    return s
-
-
-def fetch(url: str, session: requests.Session,
-          verify_ssl: bool = True, retries: int = 3) -> BeautifulSoup | None:
-    for attempt in range(1, retries + 1):
-        try:
-            time.sleep(random.uniform(1.5, 4.0))
-            resp = session.get(url, timeout=20, verify=verify_ssl, allow_redirects=True)
-            resp.raise_for_status()
-            return BeautifulSoup(resp.text, "lxml")
-        except requests.exceptions.HTTPError as e:
-            log.warning(f"[{attempt}/{retries}] HTTP 错误 {e} — {url}")
-            if e.response.status_code in (403, 429, 500):
-                session.headers["User-Agent"] = random.choice(UA_POOL)
-                time.sleep(random.uniform(10, 20))
-        except requests.exceptions.RequestException as e:
-            log.warning(f"[{attempt}/{retries}] 请求失败 {e} — {url}")
-            time.sleep(random.uniform(5, 10))
-    log.error(f"所有重试失败: {url}")
-    return None
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 #  来源 1: gaswizard.ca
+#  照搬 deep.py 逻辑（已验证可正确抓取）
 # ═══════════════════════════════════════════════════════════════════════════
 
-URL_GASWIZARD = "https://gaswizard.ca/gas-prices/toronto/"
+URL_GASWIZARD        = "https://gaswizard.trustyalec.workers.dev"
+URL_GASWIZARD_DIRECT = "https://gaswizard.ca/gas-prices/toronto/"
+
+
+def _parse_price(price_text: str):
+    """照搬 deep.py 的 parse_price，修复 Â¢ 乱码。"""
+    price_text = price_text.replace("Â¢", "¢").replace("\xa2", "¢")
+
+    price_m = re.search(r"([\d.]+)", price_text)
+    price   = float(price_m.group(1)) if price_m else None
+
+    change_m   = re.search(r"\(([^)]+)\)", price_text)
+    change_raw = change_m.group(1).strip() if change_m else "n/c"
+    change_raw = re.sub(r"<[^>]+>", "", change_raw).strip()
+
+    if re.search(r"n/c|unchanged", change_raw, re.IGNORECASE) or change_raw == "0":
+        return price, 0, "unchanged"
+
+    sign_m = re.search(r"([+-]?\d+)", change_raw)
+    if sign_m:
+        chg = int(sign_m.group(1))
+        return price, chg, "up" if chg > 0 else "down"
+
+    return price, 0, "unchanged"
 
 
 def scrape_gaswizard():
-    """
-    抓取 GasWizard，写入 CSV。
-    每次抓取到的 price_date 行会覆盖 CSV 中同日期的旧记录。
-    """
+    """照搬 deep.py 的完整抓取和解析逻辑。"""
     log.info("→ 抓取 gaswizard.ca ...")
-    session = make_session()
-    soup = fetch(URL_GASWIZARD, session)
-    if not soup:
-        return
-
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     today = date.today()
 
-    # 找含 Regular/Premium 的 <ul>
-    price_items = []
-    for ul in soup.find_all("ul"):
-        items = ul.find_all("li", recursive=False)
-        if items and "Regular" in items[0].get_text() and "Premium" in items[0].get_text():
-            price_items = items
-            break
-
-    for li in price_items[:2]:
-        li_text = li.get_text(" ", strip=True)
-
-        date_m = re.search(
-            r"(\w+day)\s*[-–]\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
-            r"\s+(\d{1,2}),\s*(\d{4})",
-            li_text,
-        )
-        if not date_m:
-            continue
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    soup = None
+    for url in [URL_GASWIZARD, URL_GASWIZARD_DIRECT]:
         try:
-            price_date = datetime.strptime(
-                f"{date_m.group(2)} {date_m.group(3)} {date_m.group(4)}", "%b %d %Y"
-            ).date()
+            resp = requests.get(url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+            log.info(f"  GasWizard OK: {url} ({len(resp.text)}b)")
+            break
+        except Exception as e:
+            log.warning(f"  GasWizard {url}: {e}")
+
+    if not soup:
+        log.error("  GasWizard 所有 URL 失败")
+        return
+
+    price_ul = soup.find("ul", class_=lambda c: c and "single-city-prices" in c)
+    if not price_ul:
+        reg_elem = soup.find(string=re.compile(r"Regular"))
+        if reg_elem:
+            price_ul = reg_elem.find_parent("ul")
+
+    if not price_ul:
+        log.warning("  GasWizard: 未找到 ul.single-city-prices")
+        return
+
+    items = price_ul.find_all("li", recursive=False)
+    log.info(f"  GasWizard 找到 {len(items)} 个 li")
+    written = 0
+
+    for li in items:
+        date_div = li.find("div", class_="datetext")
+        if date_div:
+            date_str = date_div.get_text(strip=True)
+        else:
+            date_span = li.find("span", class_="datetext")
+            if date_span:
+                date_str = date_span.get_text(strip=True)
+            else:
+                date_text = li.find(string=re.compile(
+                    r"\b(?:January|February|March|April|May|June|July|August|"
+                    r"September|October|November|December)\s+\d{1,2},\s+\d{4}\b"
+                ))
+                date_str = date_text.strip() if date_text else None
+
+        if not date_str:
+            continue
+
+        try:
+            price_date = datetime.strptime(date_str, "%B %d, %Y").date()
         except ValueError:
+            log.warning(f"  GasWizard 日期解析失败: {date_str!r}")
             continue
 
         delta = (price_date - today).days
-        if delta > 0:
-            label = "tomorrow"
-        elif delta == 0:
-            label = "today"
-        elif delta == -1:
-            label = "yesterday"
-        else:
-            label = f"{abs(delta)}_days_ago"
+        if   delta > 0:   label = "tomorrow"
+        elif delta == 0:  label = "today"
+        elif delta == -1: label = "yesterday"
+        else:             continue
 
-        def extract_fuel(keyword):
-            m = re.search(rf"{keyword}\s+([\d.]+)\s*\(([+-]?\d+)\s*[¢\xa2]\)", li_text)
-            if m:
-                return float(m.group(1)), float(m.group(2))
-            m = re.search(rf"{keyword}\s+([\d.]+)\s*\(n/c\)", li_text, re.IGNORECASE)
-            if m:
-                return float(m.group(1)), 0.0
-            m = re.search(rf"{keyword}\s+([\d.]+)", li_text)
-            if m:
-                return float(m.group(1)), None
-            return None, None
+        fuel_types = li.find_all("div", class_="fueltype")
+        if not fuel_types:
+            fuel_types = [fc for fc in li.find_all("div", recursive=True)
+                          if fc.find("div", class_="fueltitle")]
 
-        reg, reg_chg = extract_fuel("Regular")
-        pre, _       = extract_fuel("Premium")
-        die, _       = extract_fuel("Diesel")
+        data = {"regular": None, "premium": None, "diesel": None,
+                "regular_chg": None, "direction": None}
 
-        row = {
+        for fuel in fuel_types:
+            title_div = fuel.find("div", class_="fueltitle")
+            if not title_div:
+                continue
+            fuel_name = title_div.get_text(strip=True).lower()
+            price_div = fuel.find("div", class_="fuelprice")
+            if not price_div:
+                continue
+            price_text = price_div.get_text(strip=True)
+            log.info(f"  油品: {fuel_name}, 价格: {price_text!r}")
+            price_val, chg_val, direction = _parse_price(price_text)
+
+            if fuel_name == "regular":
+                data["regular"]     = price_val
+                data["regular_chg"] = chg_val
+                data["direction"]   = direction
+            elif fuel_name == "premium":
+                data["premium"] = price_val
+            elif fuel_name == "diesel":
+                data["diesel"] = price_val
+
+        if any(v is None for v in [data["regular"], data["premium"], data["diesel"]]):
+            log.warning(f"  GasWizard [{label}]: 部分油品缺失，跳过")
+            continue
+
+        upsert_row({
             "scraped_at":  now,
             "source":      "gaswizard",
             "price_date":  price_date.isoformat(),
             "label":       label,
-            "regular":     "" if reg is None else reg,
-            "premium":     "" if pre is None else pre,
-            "diesel":      "" if die is None else die,
-            "regular_chg": "" if reg_chg is None else reg_chg,
-            "direction":   "",
+            "regular":     data["regular"],
+            "premium":     data["premium"],
+            "diesel":      data["diesel"],
+            "regular_chg": data["regular_chg"],
+            "direction":   data["direction"],
             "summary":     "",
-        }
-        upsert_row(row)
-        log.info(f"  GasWizard [{label}] {price_date}: 普通={reg}({reg_chg}¢) 高级={pre} 柴油={die}")
+        })
+        log.info(f"  GasWizard [{label}] {price_date}: 普通={data['regular']}({data['regular_chg']:+d}¢)")
+        written += 1
 
-    log.info("  GasWizard 完成")
+    log.info(f"  GasWizard 完成，写入 {written} 条")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  来源 2: stockr.net
+#  照搬 seep.py 逻辑（Playwright + inner_text + 正则）
 # ═══════════════════════════════════════════════════════════════════════════
 
-URL_STOCKR_FALLBACKS = [
-    "https://www.stockr.net/Toronto/GasPrice.aspx",
-    "https://stockr.net/Toronto/GasPrice.aspx",
-    "http://www.stockr.net/Toronto/GasPrice.aspx",
-    "https://www.stockr.net/toronto/gasprice.aspx",
-]
+URL_STOCKR        = "https://stockr.trustyalec.workers.dev"
+URL_STOCKR_DIRECT = "https://stockr.net/Toronto/GasPrice.aspx"
+
+
+async def _fetch_stockr_playwright():
+    """照搬 seep.py 的 fetch_stockr_prices 抓取部分。"""
+    from playwright.async_api import async_playwright
+
+    for url in [URL_STOCKR, URL_STOCKR_DIRECT]:
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                page    = await browser.new_page()
+                await page.set_extra_http_headers({
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                })
+                await page.goto(url, wait_until="networkidle")
+                try:
+                    await page.wait_for_selector("text=Today", timeout=10000)
+                except Exception:
+                    pass
+                text = await page.inner_text("body")
+                await browser.close()
+                if "Today" in text:
+                    log.info(f"  Stockr Playwright OK: {url}")
+                    return text
+        except Exception as e:
+            log.warning(f"  Stockr Playwright {url}: {e}")
+
+    return None
+
+
+def _parse_stockr(text: str):
+    """
+    分别匹配 Today 和 Tomorrow（Tomorrow 价格可能为空）。
+    修复：seep.py 原正则要求 Today+Tomorrow 同时匹配，
+    当 Tomorrow 无价格时整体失败。改为各自独立匹配。
+    """
+    TODAY_RE = re.compile(
+        r"Today\s+([\d.]+)\s+"
+        r"([A-Za-z]+\s+[A-Za-z]+\s+\d+,\s+\d{4})",
+        re.DOTALL
+    )
+    TMR_RE = re.compile(
+        r"Tomorrow\s+([\d.]+)\s+"
+        r"([A-Za-z]+\s+[A-Za-z]+\s+\d+,\s+\d{4})",
+        re.DOTALL
+    )
+
+    def parse_date(ds):
+        for fmt in ("%A %B %d, %Y", "%A %b %d, %Y", "%B %d, %Y", "%b %d, %Y"):
+            try:
+                return datetime.strptime(ds.strip(), fmt).date()
+            except ValueError:
+                continue
+        return None
+
+    tm = TODAY_RE.search(text)
+    mm = TMR_RE.search(text)
+
+    if not tm:
+        log.warning("  Stockr: 页面中未找到 Today 价格")
+        log.warning(repr(text[:300]))
+        return []
+
+    today_price = float(tm.group(1))
+    today_date  = parse_date(tm.group(2))
+    if not today_date:
+        log.warning(f"  Stockr Today 日期解析失败: {tm.group(2)!r}")
+        return []
+
+    today_sys = date.today()
+    results   = []
+
+    # Today
+    if today_date >= today_sys:
+        label = "today" if today_date == today_sys else "tomorrow"
+        results.append((today_date, label, today_price, 0, "unchanged"))
+
+    # Tomorrow（可选）
+    if mm:
+        tmr_price = float(mm.group(1))
+        tmr_date  = parse_date(mm.group(2))
+        if tmr_date and tmr_date >= today_sys:
+            # 计算涨跌（seep.py 逻辑）
+            price_change = tmr_price - today_price
+            if price_change > 0:
+                direction, regular_chg = "up", int(price_change)
+            elif price_change < 0:
+                direction, regular_chg = "down", int(price_change)
+            else:
+                direction, regular_chg = "unchanged", 0
+            # 更新 Today 的涨跌信息
+            results = [(pd, lbl, pv, regular_chg, direction) for pd, lbl, pv, _, _ in results]
+            lbl = "today" if tmr_date == today_sys else "tomorrow"
+            results.append((tmr_date, lbl, tmr_price, regular_chg, direction))
+            log.info(f"  Stockr Tomorrow: {tmr_price}¢ @ {tmr_date}")
+    else:
+        log.info("  Stockr: 今日无 Tomorrow 预测（正常，每天11am后发布）")
+
+    return results
 
 
 def scrape_stockr():
-    """
-    抓取 Stockr，只写 Regular 价格（today / tomorrow）到 CSV。
-    """
+    """照搬 seep.py 的完整抓取和解析逻辑。"""
     log.info("→ 抓取 stockr.net ...")
-    session = make_session()
-    soup = None
-    for url_try in URL_STOCKR_FALLBACKS:
-        log.info(f"  尝试 URL: {url_try}")
-        soup = fetch(url_try, session, verify_ssl=False, retries=2)
-        if soup:
-            log.info(f"  成功: {url_try}")
-            break
-    if not soup:
-        log.error("  Stockr 所有 URL 均失败，跳过。")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    text = asyncio.run(_fetch_stockr_playwright())
+    if not text:
+        log.error("  Stockr: Playwright 失败")
         return
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    today_iso = date.today().isoformat()
-    page_text = soup.get_text(" ", strip=True)
+    results = _parse_stockr(text)
+    if not results:
+        log.warning("  Stockr: 未提取到价格数据")
+        return
 
-    # ── Today 价格 ────────────────────────────────────────────────────────
-    today_price = None
-    today_date_str = None
-
-    m = re.search(
-        r"(1[3-9]\d\.\d)\s+"
-        r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+"
-        r"(January|February|March|April|May|June|July|August|"
-        r"September|October|November|December)\s+(\d{1,2}),?\s+(202\d)",
-        page_text,
-    )
-    if m:
-        today_price = float(m.group(1))
-        try:
-            today_date_str = datetime.strptime(
-                f"{m.group(3)} {m.group(4)} {m.group(5)}", "%B %d %Y"
-            ).date().isoformat()
-        except ValueError:
-            today_date_str = today_iso
-
-    if today_price is None:
-        for selector in ["#ctl00_ContentPlaceHolder1_lblTodayPrice", "#lblTodayPrice", "h1", "h2"]:
-            el = soup.select_one(selector)
-            if el:
-                m2 = re.search(r"(1[3-9]\d\.\d)", el.get_text())
-                if m2:
-                    today_price = float(m2.group(1))
-                    today_date_str = today_iso
-                    break
-
-    if today_price is None:
-        for tag in soup.find_all(["span", "div", "td", "h1", "h2", "h3", "p"]):
-            if tag.find(["span", "div", "p", "h1", "h2", "h3", "td"]):
-                continue
-            txt = tag.get_text(strip=True)
-            m3 = re.fullmatch(r"(1[3-9]\d\.\d)", txt)
-            if m3:
-                today_price = float(m3.group(1))
-                today_date_str = today_iso
-                break
-
-    log.info(f"  Stockr today: {today_price} ({today_date_str})")
-
-    # 页面日期必须等于今天，否则页面尚未更新
-    if today_price is not None and today_date_str:
-        if today_date_str != today_iso:
-            log.warning(f"  Stockr 页面日期={today_date_str} ≠ 今天={today_iso}，跳过（页面尚未更新）")
-        else:
-            upsert_row({
-                "scraped_at": now, "source": "stockr",
-                "price_date": today_date_str, "label": "today",
-                "regular": today_price, "premium": "", "diesel": "",
-                "regular_chg": "", "direction": "", "summary": "",
-            })
-
-    # ── Tomorrow 价格（仅关键词明确出现时写入）────────────────────────────
-    tm = re.search(r"[Tt]omorrow[^\d]{0,60}?(1[3-9]\d\.\d)", page_text)
-    if tm:
-        tomorrow_price = float(tm.group(1))
-        tmr_date = (date.today() + timedelta(days=1)).isoformat()
+    for pd, label, price, chg, direction in results:
         upsert_row({
-            "scraped_at": now, "source": "stockr",
-            "price_date": tmr_date, "label": "tomorrow",
-            "regular": tomorrow_price, "premium": "", "diesel": "",
-            "regular_chg": "", "direction": "", "summary": "",
+            "scraped_at":  now,
+            "source":      "stockr",
+            "price_date":  pd.isoformat(),
+            "label":       label,
+            "regular":     price,
+            "premium":     "", "diesel": "",
+            "regular_chg": chg,
+            "direction":   direction,
+            "summary":     "Gas price prediction from Stockr",
         })
-        log.info(f"  Stockr tomorrow: {tomorrow_price} ({tmr_date})")
-    else:
-        log.info("  Stockr tomorrow: 暂无数据")
+        log.info(f"  Stockr [{label}] {pd}: {price}¢ ({chg:+d} {direction})")
 
     log.info("  Stockr 完成")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  来源 3: toronto.citynews.ca
+#  来源 3: toronto.citynews.ca（原有稳定逻辑）
 # ═══════════════════════════════════════════════════════════════════════════
 
 URL_CITYNEWS = "https://toronto.citynews.ca/toronto-gta-gas-prices/"
 
 
+def _decode_content(content: bytes) -> str:
+    import gzip as _gz, zlib as _zl
+    try:
+        return _gz.decompress(content).decode("utf-8", errors="replace")
+    except Exception:
+        pass
+    try:
+        return _zl.decompress(content, -_zl.MAX_WBITS).decode("utf-8", errors="replace")
+    except Exception:
+        pass
+    return content.decode("utf-8", errors="replace")
+
+
 def scrape_citynews():
-    """
-    抓取 CityNews，写入预测价格、方向、摘要到 CSV。
-
-    实测页面格式:
-      "__En-Pro__ tells CityNews that prices are expected to fall 7 cent(s)
-       at 12:01am on April 19, 2026 to an average of 174.9 cent(s)/litre"
-    """
     log.info("→ 抓取 toronto.citynews.ca ...")
-    session = make_session()
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    session = requests.Session()
+    session.headers.update(headers)
 
-    log.info("  先访问首页以获取 Cloudflare cookie ...")
-    fetch("https://toronto.citynews.ca/", session)
+    log.info("  先访问首页获取 Cloudflare cookie ...")
+    try:
+        session.get("https://toronto.citynews.ca/", timeout=15)
+    except Exception:
+        pass
     time.sleep(random.uniform(3, 6))
 
-    soup = fetch(URL_CITYNEWS, session)
-    if not soup:
-        log.warning("  citynews 抓取失败（Cloudflare 拦截）。如需绕过，请改用 Playwright。")
+    try:
+        resp = session.get(URL_CITYNEWS, timeout=20)
+        resp.raise_for_status()
+        html = _decode_content(resp.content)
+    except Exception as e:
+        log.warning(f"  CityNews 抓取失败: {e}")
         return
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now       = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    soup      = BeautifulSoup(html, "lxml")
     page_text = soup.get_text(" ", strip=True)
 
-    # ── 核心正则：方向 + 变化量 ───────────────────────────────────────────
-    direction = None
-    direction_cents = None
-    predicted_price = None
-    price_date = None
+    direction = direction_cents = predicted_price = price_date = None
 
-    CHANGE_RE = re.compile(
-        r"expected\s+to\s+(rise|fall|increase|decrease|drop|jump)\s+([\d.]+)\s*cent",
-        re.IGNORECASE,
-    )
-    UNCHANGED_RE = re.compile(
-        r"(remain\s+unchanged|no\s+change|holding\s+at|unchanged)",
-        re.IGNORECASE,
-    )
-    DATE_RE = re.compile(
-        r"on\s+(January|February|March|April|May|June|July|August|"
-        r"September|October|November|December|"
-        r"Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
-        r"\.?\s+(\d{1,2}),?\s+(202\d)",
-        re.IGNORECASE,
-    )
-    AVG_RE = re.compile(
-        r"(?:average\s+of|holding\s+at(?:\s+an\s+average\s+of)?)\s+(1[3-9]\d\.?\d?)\s*cent",
-        re.IGNORECASE,
-    )
+    CHANGE_RE    = re.compile(r"expected\s+to\s+(rise|fall|increase|decrease|drop|jump)\s+([\d.]+)\s*cent", re.IGNORECASE)
+    UNCHANGED_RE = re.compile(r"(remain\s+unchanged|no\s+change|holding\s+at|unchanged)", re.IGNORECASE)
+    DATE_RE      = re.compile(r"on\s+(January|February|March|April|May|June|July|August|September|October|November|December)\.?\s+(\d{1,2}),?\s+(202\d)", re.IGNORECASE)
+    AVG_RE       = re.compile(r"(?:average\s+of|holding\s+at(?:\s+an\s+average\s+of)?)\s+(1[3-9]\d\.?\d?)\s*cent", re.IGNORECASE)
 
     cm = CHANGE_RE.search(page_text)
     um = UNCHANGED_RE.search(page_text)
@@ -444,14 +429,13 @@ def scrape_citynews():
 
     if cm:
         word = cm.group(1).lower()
-        direction = "up"   if word in ("rise", "increase", "jump") else \
-                    "down" if word in ("fall", "decrease", "drop") else "unchanged"
+        direction = ("up" if word in ("rise","increase","jump") else
+                     "down" if word in ("fall","decrease","drop") else "unchanged")
         direction_cents = float(cm.group(2))
         if direction == "down":
             direction_cents = -direction_cents
     elif um:
-        direction = "unchanged"
-        direction_cents = 0.0
+        direction, direction_cents = "unchanged", 0.0
 
     if am:
         predicted_price = float(am.group(1))
@@ -473,11 +457,10 @@ def scrape_citynews():
     if price_date is None:
         price_date = (date.today() + timedelta(days=1)).isoformat()
 
-    # ── 格式化 summary ────────────────────────────────────────────────────
     summary = ""
     if predicted_price is not None and direction is not None:
         try:
-            pd_obj = datetime.strptime(price_date, "%Y-%m-%d").date()
+            pd_obj     = datetime.strptime(price_date, "%Y-%m-%d").date()
             date_short = f"{pd_obj.month}.{pd_obj.day}"
         except Exception:
             date_short = price_date
@@ -485,43 +468,37 @@ def scrape_citynews():
             summary = f"预测{date_short}日均价{predicted_price} cent(s)/litre，维持不变"
         else:
             dir_word = "上涨" if direction == "up" else "下降"
-            summary = (f"预测{date_short}日均价{predicted_price} cent(s)/litre，"
-                       f"{dir_word}{abs(direction_cents):.1f}¢")
+            summary  = f"预测{date_short}日均价{predicted_price} cent(s)/litre，{dir_word}{abs(direction_cents):.1f}¢"
 
     log.info(f"  CityNews: {summary or '解析失败'}")
 
     upsert_row({
-        "scraped_at":  now,
-        "source":      "citynews",
-        "price_date":  price_date,
-        "label":       "",
+        "scraped_at":  now, "source": "citynews",
+        "price_date":  price_date, "label": "prediction",
         "regular":     "" if predicted_price is None else predicted_price,
-        "premium":     "",
-        "diesel":      "",
+        "premium":     "", "diesel": "",
         "regular_chg": "" if direction_cents is None else direction_cents,
-        "direction":   direction or "",
-        "summary":     summary,
+        "direction":   direction or "", "summary": summary,
     })
+    log.info(f"  CityNews 已写入: {price_date} price={predicted_price} dir={direction}")
 
-    # ── 历史价格：也写入 CSV（citynews 历史条目，label 为空）────────────────
     DATE_FMTS = ("%b %d, %Y", "%B %d, %Y", "%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y")
     hist_count = 0
     for table in soup.find_all("table"):
         for row in table.find_all("tr"):
-            cells = [td.get_text(" ", strip=True) for td in row.find_all(["td", "th"])]
+            cells = [td.get_text(" ", strip=True) for td in row.find_all(["td","th"])]
             if len(cells) < 2:
                 continue
             pm = re.search(r"\b(1[3-9]\d(?:\.\d)?)\b", cells[-1])
             if not pm:
                 continue
-            price_val = float(pm.group(1))
             for fmt in DATE_FMTS:
                 try:
                     d = datetime.strptime(cells[0].strip(), fmt).date()
                     upsert_row({
                         "scraped_at": now, "source": "citynews",
                         "price_date": d.isoformat(), "label": "history",
-                        "regular": price_val, "premium": "", "diesel": "",
+                        "regular": float(pm.group(1)), "premium": "", "diesel": "",
                         "regular_chg": "", "direction": "", "summary": "",
                     })
                     hist_count += 1
@@ -529,30 +506,7 @@ def scrape_citynews():
                 except ValueError:
                     pass
 
-    DATE_TEXT_RE = re.compile(
-        r"((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+"
-        r"\d{1,2},?\s+202\d)[^0-9]{0,20}(1[3-9]\d(?:\.\d)?)",
-        re.IGNORECASE,
-    )
-    for line in page_text.splitlines():
-        for m in DATE_TEXT_RE.finditer(line):
-            date_str = m.group(1).strip().rstrip(",")
-            price_val = float(m.group(2))
-            for fmt in DATE_FMTS:
-                try:
-                    d = datetime.strptime(date_str, fmt).date()
-                    upsert_row({
-                        "scraped_at": now, "source": "citynews",
-                        "price_date": d.isoformat(), "label": "history",
-                        "regular": price_val, "premium": "", "diesel": "",
-                        "regular_chg": "", "direction": "", "summary": "",
-                    })
-                    hist_count += 1
-                    break
-                except ValueError:
-                    pass
-
-    log.info(f"  CityNews 历史记录已存: {hist_count} 条")
+    log.info(f"  CityNews 历史: {hist_count} 条")
     log.info("  CityNews 完成")
 
 
@@ -561,80 +515,70 @@ def scrape_citynews():
 # ═══════════════════════════════════════════════════════════════════════════
 
 def print_summary():
-    """
-    读取 CSV，按时效规则显示今日数据。
-    与 generate_dashboard.py 保持完全一致的时效判断逻辑。
-    """
     today_s     = date.today().isoformat()
     yesterday_s = (date.today() - timedelta(days=1)).isoformat()
     tomorrow_s  = (date.today() + timedelta(days=1)).isoformat()
+    rows        = _load_csv()
 
-    rows = _load_csv()
+    def best(source, price_date):
+        matched = [r for r in rows if r["source"] == source and r["price_date"] == price_date]
+        return max(matched, key=lambda x: x["scraped_at"]) if matched else None
 
-    def get(source, price_date, require_fresh=False):
-        matched = [r for r in rows
-                   if r["source"] == source and r["price_date"] == price_date]
-        if not matched:
-            return None
-        r = max(matched, key=lambda x: x["scraped_at"])
-        if require_fresh and not _scraped_today(r["scraped_at"]):
-            return None
-        return r
+    def fmt_chg(v):
+        if v is None or v == "": return ""
+        try:
+            fv = float(v)
+            if fv == 0: return " (n/c)"
+            return f" ({fv:+.0f}¢)"
+        except (ValueError, TypeError):
+            return ""
 
     print("\n" + "═" * 56)
     print(f"  多伦多油价汇总  —  {today_s}")
     print("═" * 56)
 
-    # GasWizard
     print("\n【GasWizard】")
-    for lbl, tgt, fresh in [("tomorrow", tomorrow_s, True),
-                             ("today",    today_s,    False),
-                             ("yesterday",yesterday_s,False)]:
-        r = get("gaswizard", tgt, fresh)
-        if r:
-            reg  = _val(r["regular"])
-            chg  = _val(r["regular_chg"])
-            pre  = _val(r["premium"])
-            die  = _val(r["diesel"])
-            def fc(v):
-                if v is None: return ""
-                if v == 0:    return " (n/c)"
-                return f" ({v:+.0f}¢)"
-            print(f"  {lbl:10s} {r['price_date']}  "
-                  f"普通={reg}{fc(chg)}  高级={pre}  柴油={die}")
-        else:
-            print(f"  {lbl:10s} 暂无预测")
+    for lbl, tgt, need_fresh in [
+        ("明天", tomorrow_s,  True),
+        ("今天", today_s,     False),
+        ("昨天", yesterday_s, False),
+    ]:
+        r = best("gaswizard", tgt)
+        if not r:
+            print(f"  {lbl}  暂无数据")
+            continue
+        if need_fresh and r["scraped_at"][:10] < yesterday_s:
+            print(f"  {lbl}  暂无预测（数据过期）")
+            continue
+        print(f"  {lbl}  {r['price_date']}  普通={_val(r['regular'])}{fmt_chg(_val(r['regular_chg']))}  高级={_val(r['premium'])}  柴油={_val(r['diesel'])}")
 
-    # Stockr
     print("\n【Stockr】")
-    for lbl, tgt in [("today", today_s), ("tomorrow", tomorrow_s)]:
-        r = get("stockr", tgt, require_fresh=True)
+    for lbl, tgt in [("今天", today_s), ("明天", tomorrow_s)]:
+        r = best("stockr", tgt)
         if r and _val(r["regular"]) is not None:
-            print(f"  {lbl:10s} {r['price_date']}  {_val(r['regular'])} cents/L")
+            print(f"  {lbl}  {r['price_date']}  {_val(r['regular'])} cents/L")
         else:
-            print(f"  {lbl:10s} 暂无预测")
+            print(f"  {lbl}  暂无预测")
 
-    # CityNews
     print("\n【CityNews】")
-    cn_rows = [r for r in rows
+    cn_pred = [r for r in rows
                if r["source"] == "citynews"
-               and r["price_date"] >= today_s
-               and r["label"] != "history"]
-    if cn_rows:
-        r = max(cn_rows, key=lambda x: x["scraped_at"])
-        if _scraped_today(r["scraped_at"]):
-            print(f"  {r['summary'] or '（无摘要）'}")
-        else:
-            print("  暂无预测")
+               and r.get("label") == "prediction"
+               and r["price_date"] >= today_s]
+    if cn_pred:
+        r     = max(cn_pred, key=lambda x: x["scraped_at"])
+        delta = (datetime.strptime(r["price_date"], "%Y-%m-%d").date() - date.today()).days
+        lbl   = "今天" if delta == 0 else "明天" if delta == 1 else r["price_date"]
+        print(f"  预测对象: {lbl}  {r['price_date']}")
+        print(f"  {r['summary'] or '（无摘要）'}")
     else:
         print("  暂无预测")
 
-    # CSV 记录总数
-    total = len(rows)
+    total  = len(rows)
     gw_cnt = sum(1 for r in rows if r["source"] == "gaswizard")
     sk_cnt = sum(1 for r in rows if r["source"] == "stockr")
     cn_cnt = sum(1 for r in rows if r["source"] == "citynews")
-    print(f"\n【CSV 记录】总计={total}  GasWizard={gw_cnt}  Stockr={sk_cnt}  CityNews={cn_cnt}")
+    print(f"\n【CSV 记录】总={total}  GasWizard={gw_cnt}  Stockr={sk_cnt}  CityNews={cn_cnt}")
     print("═" * 56 + "\n")
 
 
@@ -643,18 +587,14 @@ def print_summary():
 # ═══════════════════════════════════════════════════════════════════════════
 
 def main():
-    import sys
-
     log.info("=" * 50)
     log.info(f"开始抓取  {datetime.now()}")
     log.info("=" * 50)
-
     scrape_gaswizard()
     scrape_stockr()
     scrape_citynews()
-
     print_summary()
-    log.info(f"全部完成。数据已存入 {CSV_PATH.resolve()}")
+    log.info(f"完成。数据存入 {CSV_PATH.resolve()}")
 
 
 if __name__ == "__main__":
