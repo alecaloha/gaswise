@@ -302,6 +302,15 @@ function scrapedToday(scraped_at) {
 }
 
 // ── CSV 解析 ───────────────────────────────────────────────
+function normalizeDate(s) {
+  // 统一日期格式：2026/5/11 → 2026-05-11，2026/5/11 14:00 → 2026-05-11 14:00
+  if(!s) return s;
+  return s.replace(
+    /^(\d{4})\/(\d{1,2})\/(\d{1,2})(.*)/,
+    (_,y,m,d,rest) => `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}${rest}`
+  );
+}
+
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if(lines.length < 2) return [];
@@ -318,6 +327,9 @@ function parseCSV(text) {
     vals.push(cur);
     const row = {};
     headers.forEach((h,i) => row[h] = (vals[i]||'').trim());
+    // 统一日期格式（兼容斜线和横线两种格式）
+    if(row.scraped_at) row.scraped_at = normalizeDate(row.scraped_at);
+    if(row.price_date) row.price_date = normalizeDate(row.price_date);
     return row;
   });
 }
