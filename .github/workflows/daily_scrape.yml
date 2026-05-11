@@ -31,7 +31,7 @@ jobs:
           playwright install chromium
 
       - name: Run Scraper
-        # 添加此行确保报错时能看到具体 Python 错误日志
+        # 运行主程序
         run: python scraper.py
 
       - name: Commit and Push CSV changes
