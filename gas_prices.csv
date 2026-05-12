@@ -1,21 +1,27 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-05-09 14:39:54,citynews,2026-05-10,prediction,186.9,,,3.0,up,预测5.10日均价186.9 cent(s)/litre，上涨3.0¢
+2026-05-12 11:00:03,gaswizard,2026-05-13,tomorrow,190.9,220.9,207.9,3,up,
+2026-05-12 11:00:20,citynews,2026-05-13,prediction,188.9,,,2.0,up,预测5.13日均价188.9 cent(s)/litre，上涨2.0¢
+2026-05-12 11:00:06,stockr,2026-05-12,today,187.9,,,0,unchanged,Gas price prediction from Stockr
+2026-05-12 11:00:03,gaswizard,2026-05-12,today,187.9,217.9,204.9,0,unchanged,
+2026-05-12 11:00:20,citynews,2026-05-12,history,186.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-11,history,186.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-10,history,186.9,,,,,
 2026-05-08 23:04:23,stockr,2026-05-09,tomorrow,183.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-09 14:39:44,gaswizard,2026-05-09,today,183.9,213.9,198.9,0,unchanged,
-2026-05-08 23:04:42,citynews,2026-05-09,prediction,183.9,,,0.0,unchanged,预测5.9日均价183.9 cent(s)/litre，维持不变
+2026-05-12 11:00:20,citynews,2026-05-09,history,183.9,,,,,
 2026-05-08 23:04:23,stockr,2026-05-08,today,183.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-09 14:39:44,gaswizard,2026-05-08,yesterday,183.9,213.9,197.9,-7,down,
-2026-05-07 22:03:57,citynews,2026-05-08,prediction,183.9,,,-6.0,down,预测5.8日均价183.9 cent(s)/litre，下降6.0¢
+2026-05-12 11:00:20,citynews,2026-05-08,history,183.9,,,,,
 2026-05-07 22:03:37,stockr,2026-05-07,today,190.9,,,-7,down,Gas price prediction from Stockr
-2026-05-09 14:39:54,citynews,2026-05-07,history,189.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-07,history,189.9,,,,,
 2026-05-06 11:02:33,stockr,2026-05-06,today,195.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-06,history,194.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-06,history,195.9,,,,,
 2026-05-05 20:57:42,stockr,2026-05-05,today,188.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-05,history,185.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-04,history,185.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-03,history,185.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-02,history,186.9,,,,,
-2026-05-09 14:39:54,citynews,2026-05-01,history,186.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-05,history,185.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-04,history,185.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-03,history,185.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-02,history,186.9,,,,,
+2026-05-12 11:00:20,citynews,2026-05-01,history,186.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-30,history,179.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-29,history,176.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-28,history,176.9,,,,,
