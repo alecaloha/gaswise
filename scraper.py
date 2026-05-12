@@ -412,7 +412,7 @@ def scrape_citynews():
         return
 
     now       = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    soup      = BeautifulSoup(html, "lxml")
+    soup      = BeautifulSoup(html, "html.parser")
     page_text = soup.get_text(" ", strip=True)
 
     direction = direction_cents = predicted_price = price_date = None
