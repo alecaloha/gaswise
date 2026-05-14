@@ -14,12 +14,26 @@ CityNews  : 正则解析预测句（原有稳定逻辑）
 import asyncio
 import csv
 import re
+import os
 import time
 import random
 import logging
 import warnings
 from datetime import date, datetime, timedelta
 from pathlib import Path
+
+# 1. 设置环境变量（Windows 和 Linux 都认这个变量）
+os.environ['TZ'] = 'America/Toronto'
+
+# 2. 核心修正逻辑
+if hasattr(time, 'tzset'):
+    # 这行代码只在 Linux (GitHub Actions) 上运行
+    # 它会强迫 Python 丢弃 UTC，改用多伦多时间
+    time.tzset() 
+else:
+    # 这行在 Windows 上运行，Windows 不支持 tzset
+    # 但通常 Windows 本地时间已经是正确的，所以跳过即可
+    pass
 
 import requests
 from bs4 import BeautifulSoup
