@@ -12,6 +12,8 @@ jobs:
     # 强制开启 Node.js 24 模式以消除警告
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # 直接在虚拟机系统层面锁定多伦多时间
+      TZ: "America/Toronto"
 
     steps:
       # 更新到 v4 版本以支持 Node.js 24
