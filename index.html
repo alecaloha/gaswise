@@ -292,9 +292,16 @@ footer{
 const CSV_FILE = 'gas_prices.csv';
 
 // ── 日期工具 ───────────────────────────────────────────────
-function today()    { return new Date().toISOString().slice(0,10); }
-function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
-function tomorrow() { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function _localDateStr(d) {
+  // 用本地时间而非 UTC，避免跨午夜时区偏差
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today()    { return _localDateStr(new Date()); }
+function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return _localDateStr(d); }
+function tomorrow() { const d=new Date(); d.setDate(d.getDate()+1); return _localDateStr(d); }
 
 function scrapedToday(scraped_at) {
   if(!scraped_at) return false;
@@ -312,7 +319,7 @@ function normalizeDate(s) {
 }
 
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
+  const lines = text.trim().split('\n').map(l => l.replace(/\r$/, ''));
   if(lines.length < 2) return [];
   const headers = lines[0].split(',').map(h => h.trim());
   return lines.slice(1).map(line => {
@@ -326,7 +333,7 @@ function parseCSV(text) {
     }
     vals.push(cur);
     const row = {};
-    headers.forEach((h,i) => row[h] = (vals[i]||'').trim());
+    headers.forEach((h,i) => { row[h] = (vals[i]||'').replace(/\r/g,'').trim(); });
     // 统一日期格式（兼容斜线和横线两种格式）
     if(row.scraped_at) row.scraped_at = normalizeDate(row.scraped_at);
     if(row.price_date) row.price_date = normalizeDate(row.price_date);
