@@ -2,8 +2,8 @@ name: Gaswise Auto Scraper
 
 on:
   schedule:
-    # 多伦多下午 1:00 和 5:00
-    - cron: '0 17,21 * * *'
+    # 多伦多 11:00 和 2:00
+    - cron: '0 15,18 * * *'
   workflow_dispatch: 
 
 jobs:
