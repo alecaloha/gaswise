@@ -46,7 +46,12 @@ jobs:
           git add *.csv scraper.log
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Auto-update prices [$(date)]"
-            git push
+            
+            # 👇 关键：在 push 之前先拉取远程更新，并使用 rebase 模式，防止产生多余的 merge 节点
+            git pull origin main --rebase
+            
+            # 推送代码
+            git push origin main
           else
             echo "No changes to commit"
           fi
