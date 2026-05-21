@@ -2,8 +2,8 @@ name: Gaswise Auto Scraper
 
 on:
   schedule:
-    # 分钟设为 30，小时设为 12，15, 18, 21 (对应多伦多 8:30，11:30, 14:30, 17:30)
-    - cron: '30 12,15,18,21 * * *'
+    # 分钟设为 30，小时设为 13, 15, 18, 21 (精准对应多伦多夏令时 09:30, 11:30, 14:30, 17:30)
+    - cron: '30 13,15,18,21 * * *'
   workflow_dispatch: 
 
 jobs:
@@ -16,9 +16,11 @@ jobs:
       TZ: "America/Toronto"
 
     steps:
-      # 更新到 v4 版本以支持 Node.js 24
+      # 更新到 v4 版本，并开启完整历史克隆
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 👈 极其重要：拉取所有分支的历史提交，否则下面的 git pull --rebase 会因缺少基点而失效
 
       # 更新到 v5 版本以支持 Node.js 24
       - name: Set up Python
@@ -47,7 +49,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Auto-update prices [$(date)]"
             
-            # 👇 关键：在 push 之前先拉取远程更新，并使用 rebase 模式，防止产生多余的 merge 节点
+            # 👇 先拉取远程更新并进行变基合并，将本地新抓取的数据流畅地追加到远程新代码的后方
             git pull origin main --rebase
             
             # 推送代码
