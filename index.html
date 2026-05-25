@@ -362,17 +362,17 @@ function buildData(rows) {
   const td = today(), yd = yesterday(), tm = tomorrow();
 
   // ── GasWizard ──────────────────────────────────────────
-  // tomorrow: scraped_at >= 昨天（当天或前晚发布的预测都算有效）
-  // today/yesterday: price_date 匹配即可，无时效限制
-  function gw(target, isTomorrow=false) {
+  // 策略：不再固定查 tomorrow/today/yesterday，
+  // 而是找出 GasWizard 所有有效数据行，
+  // 按多伦多当前日期分配成三个槽位：
+  //   slot[0] = 最近未来/明天预测（price_date >= td，scraped_at >= yd）
+  //   slot[1] = 今天
+  //   slot[2] = 昨天
+  // 如果没有明天数据但有后天，slot[0] 仍放入，label 会在渲染时显示实际日期。
+  function gwGet(target) {
     const matched = rows.filter(r => r.source==='gaswizard' && r.price_date===target);
     if(!matched.length) return null;
     const r = matched.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
-    if(isTomorrow) {
-      // 超过2天前的旧预测不显示
-      const cutoff = yd; // 昨天日期字符串
-      if(r.scraped_at.slice(0,10) < cutoff) return null;
-    }
     return {
       date:        r.price_date,
       regular:     toFloat(r.regular),
@@ -380,6 +380,21 @@ function buildData(rows) {
       premium:     toFloat(r.premium),
       diesel:      toFloat(r.diesel),
     };
+  }
+
+  // 找最近的未来预测（scraped_at >= 昨天，price_date >= 明天）
+  // 可能是明天，也可能是更远的日期（GasWizard跳周末预测时）
+  const gwFutureCandidates = rows.filter(r =>
+    r.source === 'gaswizard' &&
+    r.price_date >= tm &&
+    r.scraped_at.slice(0,10) >= yd
+  );
+  let gwFutureDate = null;
+  if(gwFutureCandidates.length) {
+    // 取最近未来日期（price_date 最小）中 scraped_at 最新的
+    const minDate = gwFutureCandidates.reduce((a,b) => a.price_date < b.price_date ? a : b).price_date;
+    const candidates = gwFutureCandidates.filter(r => r.price_date === minDate);
+    gwFutureDate = candidates.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b).price_date;
   }
 
   // ── Stockr ─────────────────────────────────────────────
@@ -393,20 +408,25 @@ function buildData(rows) {
   }
 
   // ── CityNews 预测行：label==='prediction' 精确过滤 ──
+  // price_date >= td：预测对象是今天或更晚（通常是明天）
+  // scraped_at 放宽到昨天：允许昨晚抓取的预测仍然有效（解决跨午夜问题）
   const cnCandidates = rows.filter(r =>
     r.source==='citynews' &&
     r.label==='prediction' &&
-    r.price_date >= td
+    r.price_date >= td &&
+    r.scraped_at.slice(0,10) >= yd
   );
-  let cnRow = null;
-  if(cnCandidates.length) {
-    const best = cnCandidates.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b);
-    if(scrapedToday(best.scraped_at)) cnRow = best;
-  }
+  let cnRow = cnCandidates.length
+    ? cnCandidates.reduce((a,b) => a.scraped_at > b.scraped_at ? a : b)
+    : null;
 
   // ── CityNews 历史行：label==='history' ────────────────
+  // 显示今天+过去两天共3条（今天25日 → 25/24/23）
+  // 注意：CityNews 的 prediction 行的 price_date 是明天（预测对象），
+  // history 行的 price_date 是实际发生日（今天及过去）。
+  // 所以历史取 price_date <= td（包含今天）。
   const histRows = rows
-    .filter(r => r.source==='citynews' && r.label==='history' && r.price_date < td)
+    .filter(r => r.source==='citynews' && r.label==='history' && r.price_date <= td)
     .sort((a,b) => b.price_date.localeCompare(a.price_date))
     .slice(0, 3);
 
@@ -425,11 +445,17 @@ function buildData(rows) {
     })()
     : '—';
 
-  // CityNews 预测针对的日期标签（今天还是明天）
+  // CityNews 预测针对的日期标签（明天/今天/后天等）
+  // delta = price_date - today（天数差）
+  // delta=0 → 预测今天价格，delta=1 → 预测明天，delta=2 → 后天，以此类推
+  // 原来 delta<=0?'今天':'明天' 是反的，修正如下：
   let cnDateLabel = null;
   if(cnRow) {
-    const delta = (new Date(cnRow.price_date) - new Date(td)) / 86400000;
-    cnDateLabel = delta <= 0 ? '今天' : '明天';
+    const delta = Math.round((new Date(cnRow.price_date) - new Date(td)) / 86400000);
+    if      (delta === 0) cnDateLabel = '今天';
+    else if (delta === 1) cnDateLabel = '明天';
+    else if (delta >  1)  cnDateLabel = '后天';
+    else                  cnDateLabel = '今天'; // 不应发生
   }
 
   return {
@@ -451,9 +477,12 @@ function buildData(rows) {
       tomorrow_date: tm,
     },
     gaswizard: {
-      tomorrow:  gw(tm, true),   // 近2天内抓取的预测
-      today:     gw(td, false),  // 今天实际价格
-      yesterday: gw(yd, false),  // 昨天实际价格
+      future:     gwFutureDate ? gwGet(gwFutureDate) : null,  // 最近未来预测（明天或更远）
+      futureDate: gwFutureDate,   // 实际预测日期字符串（用于渲染标签）
+      today:      gwGet(td),      // 今天实际价格
+      yesterday:  gwGet(yd),      // 昨天实际价格
+      todayDate:  td,
+      yesterdayDate: yd,
     },
   };
 }
@@ -539,31 +568,71 @@ function renderSK(DATA){
 function renderGW(DATA){
   const gw=DATA.gaswizard, tb=document.getElementById('gw-tbody');
   tb.innerHTML='';
-  const rows=[
-    {key:'tomorrow',label:'明天'},
-    {key:'today',   label:'今天'},
-    {key:'yesterday',label:'昨天'},
-  ];
   const fuels=[
     {p:'regular', c:'regular_chg'},
     {p:'premium', c:'premium_chg'},
     {p:'diesel',  c:'diesel_chg'},
   ];
-  rows.forEach(({key,label})=>{
-    const d=gw[key];
+
+  // ── 动态标签生成 ────────────────────────────────────────
+  // slot[0]: 未来预测槽（明天 or 更远）
+  // slot[1]: 今天
+  // slot[2]: 昨天
+  // 规则:
+  //   - 有 futureDate 且 futureDate === tomorrow → 标签"明天"，样式 tomorrow
+  //   - 有 futureDate 且 futureDate > tomorrow  → 标签"未来 May 28"，样式 tomorrow（蓝色）
+  //   - 无 futureDate                           → 标签"暂无预测"，价格显示"—"
+  const tm = DATA.gaswizard.futureDate;
+  const tdStr = DATA.gaswizard.todayDate;
+  const ydStr = DATA.gaswizard.yesterdayDate;
+
+  // 计算 tomorrow date string (td+1)
+  function isoAddDays(iso, n) {
+    const d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0,10);
+  }
+  const tomorrowDate = tdStr ? isoAddDays(tdStr, 1) : null;
+
+  // 确定 slot[0] 的标签文字和 CSS key
+  let futureLabel, futureSubLabel='', futureCssKey='tomorrow';
+  if (!tm) {
+    futureLabel = '明天';
+    futureSubLabel = '暂无预测';
+  } else if (tm === tomorrowDate) {
+    futureLabel = '明天';
+    futureSubLabel = fmtDate(tm);
+  } else {
+    // 比明天更远（如跳过周末直接预测周一）
+    futureLabel = '未来';
+    futureSubLabel = fmtDate(tm);
+  }
+
+  const slots = [
+    { key: futureCssKey, label: futureLabel, subLabel: futureSubLabel, data: tm ? gw.future : null },
+    { key: 'today',     label: '今天', subLabel: fmtDate(tdStr), data: gw.today },
+    { key: 'yesterday', label: '昨天', subLabel: fmtDate(ydStr), data: gw.yesterday },
+  ];
+
+  slots.forEach(({key, label, subLabel, data})=>{
     const tr=document.createElement('tr');
+
+    // 时间标签列
     const tt=document.createElement('td');
     tt.className='gw-time';
-    tt.innerHTML=`<div class="gw-tl ${key}">${label}</div>`;
+    tt.innerHTML=`<div class="gw-tl ${key}">${label}</div>`+
+                 (subLabel ? `<div class="gw-day-s">${subLabel}</div>` : '');
     tr.appendChild(tt);
+
+    // 三种燃料价格列
     fuels.forEach(({p,c})=>{
       const td=document.createElement('td');
       td.className='gw-pcell';
-      if(!d||d[p]==null){
+      if(!data||data[p]==null){
         td.innerHTML=`<div class="gw-p none">—</div>`;
       } else {
-        const cs=chgStr(d[c]), cc=chgCls(d[c]);
-        td.innerHTML=`<div class="gw-p ${key}">${d[p].toFixed(1)}</div>`+
+        const cs=chgStr(data[c]), cc=chgCls(data[c]);
+        td.innerHTML=`<div class="gw-p ${key}">${data[p].toFixed(1)}</div>`+
                      (cs!=null?`<div class="gw-chg ${cc}">${cs}</div>`:'');
       }
       tr.appendChild(td);
