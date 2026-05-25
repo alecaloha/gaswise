@@ -1,63 +1,64 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-05-25 16:10:55,gaswizard,2026-05-27,tomorrow,183.9,213.9,202.9,0,unchanged,
-2026-05-25 16:10:55,gaswizard,2026-05-26,tomorrow,183.9,213.9,202.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-26,prediction,182.9,,,0.0,unchanged,预测5.26日均价182.9 cent(s)/litre，维持不变
-2026-05-25 16:10:56,stockr,2026-05-25,today,183.9,,,0,unchanged,Gas price prediction from Stockr
-2026-05-25 16:11:05,citynews,2026-05-25,history,182.9,,,,,
+2026-05-25 18:35:55,gaswizard,2026-05-27,tomorrow,183.9,213.9,202.9,0,unchanged,
+2026-05-25 18:35:57,stockr,2026-05-26,tomorrow,183.9,,,0,unchanged,Gas price prediction from Stockr
+2026-05-25 18:35:55,gaswizard,2026-05-26,tomorrow,183.9,213.9,202.9,0,unchanged,
+2026-05-25 18:36:03,citynews,2026-05-26,prediction,182.9,,,0.0,unchanged,预测5.26日均价182.9 cent(s)/litre，维持不变
+2026-05-25 18:35:57,stockr,2026-05-25,today,183.9,,,0,unchanged,Gas price prediction from Stockr
+2026-05-25 18:36:03,citynews,2026-05-25,history,182.9,,,,,
 2026-05-24 18:31:17,stockr,2026-05-24,today,183.9,,,0,unchanged,Gas price prediction from Stockr
-2026-05-25 16:11:05,citynews,2026-05-24,history,182.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-24,history,182.9,,,,,
 2026-05-23 18:26:53,stockr,2026-05-23,today,184.9,,,-1,down,Gas price prediction from Stockr
-2026-05-25 16:11:05,citynews,2026-05-23,history,179.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-23,history,179.9,,,,,
 2026-05-22 18:35:51,stockr,2026-05-22,today,191.9,,,-7,down,Gas price prediction from Stockr
 2026-05-23 07:42:52,gaswizard,2026-05-22,yesterday,184.9,214.9,205.9,-7,down,
-2026-05-25 16:11:05,citynews,2026-05-22,history,183.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-22,history,183.9,,,,,
 2026-05-21 18:49:19,stockr,2026-05-21,today,193.9,,,-2,down,Gas price prediction from Stockr
 2026-05-22 18:35:50,gaswizard,2026-05-21,yesterday,191.9,221.9,214.9,-2,down,
-2026-05-25 16:11:05,citynews,2026-05-21,history,191.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-21,history,191.9,,,,,
 2026-05-20 18:48:42,stockr,2026-05-20,today,193.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-21 18:49:18,gaswizard,2026-05-20,yesterday,193.9,223.9,209.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-20,history,192.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-20,history,192.9,,,,,
 2026-05-19 18:42:03,stockr,2026-05-19,today,193.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-20 16:33:06,gaswizard,2026-05-19,yesterday,193.9,223.9,209.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-19,history,192.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-19,history,192.9,,,,,
 2026-05-18 18:30:46,stockr,2026-05-18,today,193.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-18 18:30:45,gaswizard,2026-05-18,today,193.9,223.9,209.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-18,history,192.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-18,history,192.9,,,,,
 2026-05-17 18:11:35,stockr,2026-05-17,today,193.9,,,0,unchanged,Gas price prediction from Stockr
-2026-05-25 16:11:05,citynews,2026-05-17,history,192.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-17,history,192.9,,,,,
 2026-05-16 18:08:46,stockr,2026-05-16,today,189.9,,,4,up,Gas price prediction from Stockr
 2026-05-16 12:15:01,gaswizard,2026-05-16,today,189.9,219.9,203.9,-1,down,
-2026-05-25 16:11:05,citynews,2026-05-16,history,188.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-16,history,188.9,,,,,
 2026-05-15 18:15:42,stockr,2026-05-15,today,190.9,,,-1,down,Gas price prediction from Stockr
 2026-05-16 12:15:01,gaswizard,2026-05-15,yesterday,190.9,220.9,206.9,-4,down,
-2026-05-25 16:11:05,citynews,2026-05-15,history,189.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-15,history,189.9,,,,,
 2026-05-14 18:17:32,stockr,2026-05-14,today,190.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-14 18:17:30,gaswizard,2026-05-14,today,194.9,224.9,214.9,4,up,
-2026-05-25 16:11:05,citynews,2026-05-14,history,192.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-14,history,192.9,,,,,
 2026-05-13 11:00:12,stockr,2026-05-13,today,190.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-13 11:00:04,gaswizard,2026-05-13,today,190.9,220.9,207.9,3,up,
-2026-05-25 16:11:05,citynews,2026-05-13,history,188.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-13,history,188.9,,,,,
 2026-05-12 17:00:04,stockr,2026-05-12,today,187.9,,,3,up,Gas price prediction from Stockr
 2026-05-13 11:00:04,gaswizard,2026-05-12,yesterday,187.9,217.9,204.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-12,history,186.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-11,history,186.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-10,history,186.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-12,history,186.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-11,history,186.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-10,history,186.9,,,,,
 2026-05-08 23:04:23,stockr,2026-05-09,tomorrow,183.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-09 14:39:44,gaswizard,2026-05-09,today,183.9,213.9,198.9,0,unchanged,
-2026-05-25 16:11:05,citynews,2026-05-09,history,183.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-09,history,183.9,,,,,
 2026-05-08 23:04:23,stockr,2026-05-08,today,183.9,,,0,unchanged,Gas price prediction from Stockr
 2026-05-09 14:39:44,gaswizard,2026-05-08,yesterday,183.9,213.9,197.9,-7,down,
-2026-05-25 16:11:05,citynews,2026-05-08,history,183.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-08,history,183.9,,,,,
 2026-05-07 22:03:37,stockr,2026-05-07,today,190.9,,,-7,down,Gas price prediction from Stockr
-2026-05-25 16:11:05,citynews,2026-05-07,history,189.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-07,history,189.9,,,,,
 2026-05-06 11:02:33,stockr,2026-05-06,today,195.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-06,history,195.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-06,history,195.9,,,,,
 2026-05-05 20:57:42,stockr,2026-05-05,today,188.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-05,history,185.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-04,history,185.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-03,history,185.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-02,history,186.9,,,,,
-2026-05-25 16:11:05,citynews,2026-05-01,history,186.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-05,history,185.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-04,history,185.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-03,history,185.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-02,history,186.9,,,,,
+2026-05-25 18:36:03,citynews,2026-05-01,history,186.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-30,history,179.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-29,history,176.9,,,,,
 2026-05-07 22:03:57,citynews,2026-04-28,history,176.9,,,,,
