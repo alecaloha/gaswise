@@ -1953,3 +1953,25 @@
 2026-06-04 13:59:26,733 [INFO]   CityNews 历史: 4 条
 2026-06-04 13:59:26,733 [INFO]   CityNews 完成
 2026-06-04 13:59:26,735 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-06-04 16:33:45,691 [INFO] ==================================================
+2026-06-04 16:33:45,692 [INFO] 开始抓取  2026-06-04 16:33:45.692038
+2026-06-04 16:33:45,692 [INFO] ==================================================
+2026-06-04 16:33:45,692 [INFO] → 抓取 gaswizard.ca ...
+2026-06-04 16:33:46,473 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (102802b)
+2026-06-04 16:33:46,473 [INFO]   GasWizard 找到 2 个 li
+2026-06-04 16:33:46,488 [WARNING]   GasWizard 日期解析失败: 'Jun 5, 2026'
+2026-06-04 16:33:46,488 [WARNING]   GasWizard 日期解析失败: 'Jun 4, 2026'
+2026-06-04 16:33:46,488 [INFO]   GasWizard 完成，写入 0 条
+2026-06-04 16:33:46,489 [INFO] → 抓取 stockr.net ...
+2026-06-04 16:33:48,782 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-06-04 16:33:48,794 [INFO]   Stockr Tomorrow: 181.9¢ @ 2026-06-05
+2026-06-04 16:33:48,798 [INFO]   Stockr [today] 2026-06-04: 181.9¢ (+0 unchanged)
+2026-06-04 16:33:48,799 [INFO]   Stockr [tomorrow] 2026-06-05: 181.9¢ (+0 unchanged)
+2026-06-04 16:33:48,799 [INFO]   Stockr 完成
+2026-06-04 16:33:48,799 [INFO] → 抓取 toronto.citynews.ca ...
+2026-06-04 16:33:48,799 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-06-04 16:33:54,903 [INFO]   CityNews: 预测6.5日均价177.9 cent(s)/litre，维持不变
+2026-06-04 16:33:54,904 [INFO]   CityNews 已写入: 2026-06-05 price=177.9 dir=unchanged
+2026-06-04 16:33:54,916 [INFO]   CityNews 历史: 4 条
+2026-06-04 16:33:54,916 [INFO]   CityNews 完成
+2026-06-04 16:33:54,918 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
