@@ -1,18 +1,18 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-06-06 18:37:54,stockr,2026-06-07,tomorrow,172.9,,,0,unchanged,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-07,prediction,170.9,,,-1.0,down,预测6.7日均价170.9 cent(s)/litre，下降1.0¢
+2026-06-07 08:08:32,stockr,2026-06-07,today,172.9,,,0,unchanged,Gas price prediction from Stockr
+2026-06-07 08:08:39,citynews,2026-06-07,prediction,170.9,,,-1.0,down,预测6.7日均价170.9 cent(s)/litre，下降1.0¢
 2026-06-06 18:37:54,stockr,2026-06-06,today,172.9,,,0,unchanged,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-06,history,172.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-06,history,172.9,,,,,
 2026-06-05 18:44:12,stockr,2026-06-05,today,181.9,,,-9,down,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-05,history,177.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-05,history,177.9,,,,,
 2026-06-04 18:54:03,stockr,2026-06-04,today,181.9,,,0,unchanged,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-04,history,177.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-04,history,177.9,,,,,
 2026-06-03 19:18:40,stockr,2026-06-03,today,183.9,,,-2,down,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-03,history,177.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-03,history,177.9,,,,,
 2026-06-02 19:16:46,stockr,2026-06-02,today,183.9,,,0,unchanged,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-02,history,169.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-02,history,169.9,,,,,
 2026-06-01 17:50:24,stockr,2026-06-01,today,183.9,,,0,unchanged,Gas price prediction from Stockr
-2026-06-06 18:38:04,citynews,2026-06-01,history,169.9,,,,,
+2026-06-07 08:08:39,citynews,2026-06-01,history,169.9,,,,,
 2026-05-31 18:34:11,stockr,2026-05-31,today,183.9,,,0,unchanged,Gas price prediction from Stockr
 2026-06-03 11:19:49,citynews,2026-05-31,history,169.9,,,,,
 2026-05-30 18:32:27,stockr,2026-05-30,today,183.9,,,0,unchanged,Gas price prediction from Stockr
