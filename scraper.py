@@ -1,9 +1,9 @@
 """
 Toronto Gas Price Scraper
 =========================
-GasWizard : 照搬 deep.py  (requests + html.parser + CSS class)
-Stockr    : 照搬 seep.py  (Playwright + inner_text + 正则)
-CityNews  : 正则解析预测句（原有稳定逻辑）
+GasWizard : 优化版（支持 Jun/June + 带 weekday 前缀的日期）
+Stockr    : 照搬 seep.py
+CityNews  : 原有稳定逻辑
 
 运行:
   pip install requests playwright beautifulsoup4 lxml
@@ -27,12 +27,8 @@ os.environ['TZ'] = 'America/Toronto'
 
 # 2. 核心修正逻辑
 if hasattr(time, 'tzset'):
-    # 这行代码只在 Linux (GitHub Actions) 上运行
-    # 它会强迫 Python 丢弃 UTC，改用多伦多时间
-    time.tzset() 
+    time.tzset()
 else:
-    # 这行在 Windows 上运行，Windows 不支持 tzset
-    # 但通常 Windows 本地时间已经是正确的，所以跳过即可
     pass
 
 import requests
@@ -97,8 +93,8 @@ def _val(s):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  来源 1: gaswizard.ca
-#  照搬 deep.py 逻辑（已验证可正确抓取）
+#  来源 1: gaswizard.ca  (优化版 - 2026-06-11)
+#  主要修复：日期解析支持 abbreviated month (Jun/June) + 带 weekday 前缀
 # ═══════════════════════════════════════════════════════════════════════════
 
 URL_GASWIZARD        = "https://gaswizard.trustyalec.workers.dev"
@@ -128,7 +124,7 @@ def _parse_price(price_text: str):
 
 
 def scrape_gaswizard():
-    """照搬 deep.py 的完整抓取和解析逻辑。"""
+    """优化后的 GasWizard 抓取逻辑（日期解析增强版）"""
     log.info("→ 抓取 gaswizard.ca ...")
     now   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     today = date.today()
@@ -164,6 +160,7 @@ def scrape_gaswizard():
     written = 0
 
     for li in items:
+        # === 日期提取 ===
         date_div = li.find("div", class_="datetext")
         if date_div:
             date_str = date_div.get_text(strip=True)
@@ -174,25 +171,47 @@ def scrape_gaswizard():
             else:
                 date_text = li.find(string=re.compile(
                     r"\b(?:January|February|March|April|May|June|July|August|"
-                    r"September|October|November|December)\s+\d{1,2},\s+\d{4}\b"
+                    r"September|October|November|December|"
+                    r"Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
+                    r"\s+\d{1,2},\s+\d{4}\b",
+                    re.IGNORECASE
                 ))
                 date_str = date_text.strip() if date_text else None
 
         if not date_str:
             continue
 
-        try:
-            price_date = datetime.strptime(date_str, "%B %d, %Y").date()
-        except ValueError:
+        # === 日期清洗 + 多格式解析（核心修复） ===
+        date_match = re.search(
+            r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December|"
+            r"Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
+            r"\s+\d{1,2},\s+\d{4}\b",
+            date_str,
+            re.IGNORECASE
+        )
+        if date_match:
+            date_str = date_match.group(0)
+
+        price_date = None
+        for fmt in ("%B %d, %Y", "%b %d, %Y"):
+            try:
+                price_date = datetime.strptime(date_str, fmt).date()
+                break
+            except ValueError:
+                continue
+
+        if price_date is None:
             log.warning(f"  GasWizard 日期解析失败: {date_str!r}")
             continue
 
+        # === 标签判断 ===
         delta = (price_date - today).days
         if   delta > 0:   label = "tomorrow"
         elif delta == 0:  label = "today"
         elif delta == -1: label = "yesterday"
         else:             continue
 
+        # === 油品价格解析 ===
         fuel_types = li.find_all("div", class_="fueltype")
         if not fuel_types:
             fuel_types = [fc for fc in li.find_all("div", recursive=True)
@@ -246,7 +265,6 @@ def scrape_gaswizard():
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  来源 2: stockr.net
-#  照搬 seep.py 逻辑（Playwright + inner_text + 正则）
 # ═══════════════════════════════════════════════════════════════════════════
 
 URL_STOCKR        = "https://stockr.trustyalec.workers.dev"
@@ -254,7 +272,6 @@ URL_STOCKR_DIRECT = "https://stockr.net/Toronto/GasPrice.aspx"
 
 
 async def _fetch_stockr_playwright():
-    """照搬 seep.py 的 fetch_stockr_prices 抓取部分。"""
     from playwright.async_api import async_playwright
 
     for url in [URL_STOCKR, URL_STOCKR_DIRECT]:
@@ -282,11 +299,6 @@ async def _fetch_stockr_playwright():
 
 
 def _parse_stockr(text: str):
-    """
-    分别匹配 Today 和 Tomorrow（Tomorrow 价格可能为空）。
-    修复：seep.py 原正则要求 Today+Tomorrow 同时匹配，
-    当 Tomorrow 无价格时整体失败。改为各自独立匹配。
-    """
     TODAY_RE = re.compile(
         r"Today\s+([\d.]+)\s+"
         r"([A-Za-z]+\s+[A-Za-z]+\s+\d+,\s+\d{4})",
@@ -323,17 +335,14 @@ def _parse_stockr(text: str):
     today_sys = date.today()
     results   = []
 
-    # Today
     if today_date >= today_sys:
         label = "today" if today_date == today_sys else "tomorrow"
         results.append((today_date, label, today_price, 0, "unchanged"))
 
-    # Tomorrow（可选）
     if mm:
         tmr_price = float(mm.group(1))
         tmr_date  = parse_date(mm.group(2))
         if tmr_date and tmr_date >= today_sys:
-            # 计算涨跌（seep.py 逻辑）
             price_change = tmr_price - today_price
             if price_change > 0:
                 direction, regular_chg = "up", int(price_change)
@@ -341,7 +350,6 @@ def _parse_stockr(text: str):
                 direction, regular_chg = "down", int(price_change)
             else:
                 direction, regular_chg = "unchanged", 0
-            # 更新 Today 的涨跌信息
             results = [(pd, lbl, pv, regular_chg, direction) for pd, lbl, pv, _, _ in results]
             lbl = "today" if tmr_date == today_sys else "tomorrow"
             results.append((tmr_date, lbl, tmr_price, regular_chg, direction))
@@ -353,7 +361,6 @@ def _parse_stockr(text: str):
 
 
 def scrape_stockr():
-    """照搬 seep.py 的完整抓取和解析逻辑。"""
     log.info("→ 抓取 stockr.net ...")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -385,7 +392,7 @@ def scrape_stockr():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  来源 3: toronto.citynews.ca（原有稳定逻辑）
+#  来源 3: toronto.citynews.ca
 # ═══════════════════════════════════════════════════════════════════════════
 
 URL_CITYNEWS = "https://toronto.citynews.ca/toronto-gta-gas-prices/"
