@@ -2553,3 +2553,30 @@
 2026-06-10 19:09:31,692 [INFO]   CityNews 历史: 10 条
 2026-06-10 19:09:31,693 [INFO]   CityNews 完成
 2026-06-10 19:09:31,695 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-06-11 10:24:28,559 [INFO] ==================================================
+2026-06-11 10:24:28,559 [INFO] 开始抓取  2026-06-11 10:24:28.559663
+2026-06-11 10:24:28,559 [INFO] ==================================================
+2026-06-11 10:24:28,559 [INFO] → 抓取 gaswizard.ca ...
+2026-06-11 10:24:29,398 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (101002b)
+2026-06-11 10:24:29,399 [INFO]   GasWizard 找到 2 个 li
+2026-06-11 10:24:29,414 [INFO]   油品: regular, 价格: '168.9 (-2Â¢)'
+2026-06-11 10:24:29,415 [INFO]   油品: premium, 价格: '201.9 (n/c)'
+2026-06-11 10:24:29,415 [INFO]   油品: diesel, 价格: '191.9 (-8Â¢)'
+2026-06-11 10:24:29,417 [INFO]   GasWizard [today] 2026-06-11: 普通=168.9(-2¢)
+2026-06-11 10:24:29,418 [INFO]   油品: regular, 价格: '170.9 (n/c)'
+2026-06-11 10:24:29,418 [INFO]   油品: premium, 价格: '201.9 (n/c)'
+2026-06-11 10:24:29,418 [INFO]   油品: diesel, 价格: '199.9 (n/c)'
+2026-06-11 10:24:29,419 [INFO]   GasWizard [yesterday] 2026-06-10: 普通=170.9(+0¢)
+2026-06-11 10:24:29,419 [INFO]   GasWizard 完成，写入 2 条
+2026-06-11 10:24:29,420 [INFO] → 抓取 stockr.net ...
+2026-06-11 10:24:32,005 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-06-11 10:24:32,019 [INFO]   Stockr: 今日无 Tomorrow 预测（正常，每天11am后发布）
+2026-06-11 10:24:32,020 [INFO]   Stockr [today] 2026-06-11: 168.9¢ (+0 unchanged)
+2026-06-11 10:24:32,020 [INFO]   Stockr 完成
+2026-06-11 10:24:32,020 [INFO] → 抓取 toronto.citynews.ca ...
+2026-06-11 10:24:32,020 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-06-11 10:24:37,561 [INFO]   CityNews: 预测6.12日均价171.9 cent(s)/litre，上涨3.0¢
+2026-06-11 10:24:37,562 [INFO]   CityNews 已写入: 2026-06-12 price=171.9 dir=up
+2026-06-11 10:24:37,577 [INFO]   CityNews 历史: 11 条
+2026-06-11 10:24:37,577 [INFO]   CityNews 完成
+2026-06-11 10:24:37,579 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
