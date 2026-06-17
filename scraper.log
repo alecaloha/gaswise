@@ -3196,3 +3196,31 @@
 2026-06-17 14:03:10,486 [INFO]   CityNews 历史: 17 条
 2026-06-17 14:03:10,486 [INFO]   CityNews 完成
 2026-06-17 14:03:10,487 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-06-17 16:35:24,798 [INFO] ==================================================
+2026-06-17 16:35:24,799 [INFO] 开始抓取  2026-06-17 16:35:24.799068
+2026-06-17 16:35:24,799 [INFO] ==================================================
+2026-06-17 16:35:24,799 [INFO] → 抓取 gaswizard.ca ...
+2026-06-17 16:35:25,088 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (106402b)
+2026-06-17 16:35:25,089 [INFO]   GasWizard 找到 2 个 li
+2026-06-17 16:35:25,105 [INFO]   油品: regular, 价格: '161.9 (-4Â¢)'
+2026-06-17 16:35:25,105 [INFO]   油品: premium, 价格: '201.9 (n/c)'
+2026-06-17 16:35:25,106 [INFO]   油品: diesel, 价格: '191.9 (n/c)'
+2026-06-17 16:35:25,108 [INFO]   GasWizard [today] 2026-06-17: 普通=161.9(-4¢)
+2026-06-17 16:35:25,109 [INFO]   油品: regular, 价格: '165.9 (-1Â¢)'
+2026-06-17 16:35:25,109 [INFO]   油品: premium, 价格: '201.9 (n/c)'
+2026-06-17 16:35:25,109 [INFO]   油品: diesel, 价格: '191.9 (n/c)'
+2026-06-17 16:35:25,110 [INFO]   GasWizard [yesterday] 2026-06-16: 普通=165.9(-1¢)
+2026-06-17 16:35:25,110 [INFO]   GasWizard 完成，写入 2 条
+2026-06-17 16:35:25,111 [INFO] → 抓取 stockr.net ...
+2026-06-17 16:35:27,641 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-06-17 16:35:27,654 [INFO]   Stockr Tomorrow: 161.9¢ @ 2026-06-18
+2026-06-17 16:35:27,655 [INFO]   Stockr [today] 2026-06-17: 161.9¢ (+0 unchanged)
+2026-06-17 16:35:27,656 [INFO]   Stockr [tomorrow] 2026-06-18: 161.9¢ (+0 unchanged)
+2026-06-17 16:35:27,656 [INFO]   Stockr 完成
+2026-06-17 16:35:27,656 [INFO] → 抓取 toronto.citynews.ca ...
+2026-06-17 16:35:27,656 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-06-17 16:35:32,904 [INFO]   CityNews: 预测6.18日均价157.9 cent(s)/litre，下降5.0¢
+2026-06-17 16:35:32,905 [INFO]   CityNews 已写入: 2026-06-18 price=157.9 dir=down
+2026-06-17 16:35:32,927 [INFO]   CityNews 历史: 17 条
+2026-06-17 16:35:32,927 [INFO]   CityNews 完成
+2026-06-17 16:35:32,929 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
