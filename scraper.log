@@ -3346,3 +3346,30 @@
 2026-06-18 19:19:23,947 [INFO]   CityNews 历史: 18 条
 2026-06-18 19:19:23,947 [INFO]   CityNews 完成
 2026-06-18 19:19:23,948 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-06-19 09:55:16,425 [INFO] ==================================================
+2026-06-19 09:55:16,425 [INFO] 开始抓取  2026-06-19 09:55:16.425510
+2026-06-19 09:55:16,425 [INFO] ==================================================
+2026-06-19 09:55:16,425 [INFO] → 抓取 gaswizard.ca ...
+2026-06-19 09:55:17,806 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (186273b)
+2026-06-19 09:55:17,806 [INFO]   GasWizard 找到 2 个 li
+2026-06-19 09:55:17,859 [INFO]   油品: regular, 价格: '159.9 (+1Â¢)'
+2026-06-19 09:55:17,860 [INFO]   油品: premium, 价格: '188.9 (n/c)'
+2026-06-19 09:55:17,860 [INFO]   油品: diesel, 价格: '165.9 (n/c)'
+2026-06-19 09:55:17,863 [INFO]   GasWizard [today] 2026-06-19: 普通=159.9(+1¢)
+2026-06-19 09:55:17,863 [INFO]   油品: regular, 价格: '158.9 (-3Â¢)'
+2026-06-19 09:55:17,863 [INFO]   油品: premium, 价格: '188.9 (-13Â¢)'
+2026-06-19 09:55:17,864 [INFO]   油品: diesel, 价格: '165.9 (-26Â¢)'
+2026-06-19 09:55:17,865 [INFO]   GasWizard [yesterday] 2026-06-18: 普通=158.9(-3¢)
+2026-06-19 09:55:17,865 [INFO]   GasWizard 完成，写入 2 条
+2026-06-19 09:55:17,866 [INFO] → 抓取 stockr.net ...
+2026-06-19 09:55:20,578 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-06-19 09:55:20,590 [INFO]   Stockr: 今日无 Tomorrow 预测（正常，每天11am后发布）
+2026-06-19 09:55:20,591 [INFO]   Stockr [today] 2026-06-19: 161.9¢ (+0 unchanged)
+2026-06-19 09:55:20,591 [INFO]   Stockr 完成
+2026-06-19 09:55:20,591 [INFO] → 抓取 toronto.citynews.ca ...
+2026-06-19 09:55:20,591 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-06-19 09:55:26,754 [INFO]   CityNews: 预测6.19日均价162.9 cent(s)/litre，上涨4.0¢
+2026-06-19 09:55:26,755 [INFO]   CityNews 已写入: 2026-06-19 price=162.9 dir=up
+2026-06-19 09:55:26,780 [INFO]   CityNews 历史: 18 条
+2026-06-19 09:55:26,780 [INFO]   CityNews 完成
+2026-06-19 09:55:26,782 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
