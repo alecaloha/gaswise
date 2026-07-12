@@ -1,24 +1,24 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-07-11 18:23:58,stockr,2026-07-12,tomorrow,163.9,,,-3,down,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-12,prediction,163.9,,,-2.0,down,预测7.12日均价163.9 cent(s)/litre，下降2.0¢
+2026-07-12 07:38:41,stockr,2026-07-12,today,163.9,,,0,unchanged,Gas price prediction from Stockr
+2026-07-12 07:38:48,citynews,2026-07-12,prediction,163.9,,,-2.0,down,预测7.12日均价163.9 cent(s)/litre，下降2.0¢
 2026-07-11 18:23:58,stockr,2026-07-11,today,166.9,,,-3,down,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-11,history,165.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-11,history,165.9,,,,,
 2026-07-10 18:32:47,stockr,2026-07-10,today,169.9,,,-4,down,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-10,history,168.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-10,history,168.9,,,,,
 2026-07-09 18:51:05,stockr,2026-07-09,today,164.9,,,5,up,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-09,history,163.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-09,history,163.9,,,,,
 2026-07-08 18:34:08,stockr,2026-07-08,today,166.9,,,-2,down,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-08,history,165.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-08,history,165.9,,,,,
 2026-07-07 18:38:48,stockr,2026-07-07,today,162.9,,,0,unchanged,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-07,history,162.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-07,history,162.9,,,,,
 2026-07-06 18:49:12,stockr,2026-07-06,today,162.9,,,0,unchanged,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-06,history,162.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-06,history,162.9,,,,,
 2026-07-05 18:32:13,stockr,2026-07-05,today,162.9,,,0,unchanged,Gas price prediction from Stockr
-2026-07-11 18:24:05,citynews,2026-07-05,history,162.9,,,,,
-2026-07-11 18:24:05,citynews,2026-07-04,history,162.9,,,,,
-2026-07-11 18:24:05,citynews,2026-07-03,history,161.9,,,,,
-2026-07-11 18:24:05,citynews,2026-07-02,history,161.9,,,,,
-2026-07-11 18:24:05,citynews,2026-07-01,history,163.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-05,history,162.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-04,history,162.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-03,history,161.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-02,history,161.9,,,,,
+2026-07-12 07:38:48,citynews,2026-07-01,history,163.9,,,,,
 2026-07-02 16:04:25,citynews,2026-06-30,history,159.9,,,,,
 2026-07-02 16:04:25,citynews,2026-06-29,history,159.9,,,,,
 2026-07-02 16:04:25,citynews,2026-06-28,history,159.9,,,,,
