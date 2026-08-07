@@ -1,17 +1,18 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-08-06 08:27:01,stockr,2026-08-07,tomorrow,159.9,,,-4,down,Gas price prediction from Stockr
-2026-08-06 08:27:01,stockr,2026-08-06,today,163.9,,,-4,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-06,prediction,163.9,,,-9.0,down,预测8.6日均价163.9 cent(s)/litre，下降9.0¢
+2026-08-06 20:25:15,stockr,2026-08-07,tomorrow,159.9,,,-4,down,Gas price prediction from Stockr
+2026-08-06 20:25:26,citynews,2026-08-07,prediction,162.9,,,-1.0,down,预测8.7日均价162.9 cent(s)/litre，下降1.0¢
+2026-08-06 20:25:15,stockr,2026-08-06,today,163.9,,,-4,down,Gas price prediction from Stockr
+2026-08-06 20:25:26,citynews,2026-08-06,history,163.9,,,,,
 2026-08-05 18:35:51,stockr,2026-08-05,today,172.9,,,-2,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-05,history,172.9,,,,,
+2026-08-06 20:25:26,citynews,2026-08-05,history,172.9,,,,,
 2026-08-04 18:36:52,stockr,2026-08-04,today,172.9,,,-2,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-04,history,172.9,,,,,
+2026-08-06 20:25:26,citynews,2026-08-04,history,172.9,,,,,
 2026-08-03 18:33:59,stockr,2026-08-03,today,172.9,,,-2,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-03,history,172.9,,,,,
+2026-08-06 20:25:26,citynews,2026-08-03,history,172.9,,,,,
 2026-08-02 18:28:36,stockr,2026-08-02,today,172.9,,,-2,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-02,history,172.9,,,,,
+2026-08-06 20:25:26,citynews,2026-08-02,history,172.9,,,,,
 2026-08-01 18:28:22,stockr,2026-08-01,today,174.9,,,-2,down,Gas price prediction from Stockr
-2026-08-06 08:27:10,citynews,2026-08-01,history,174.9,,,,,
+2026-08-06 20:25:26,citynews,2026-08-01,history,174.9,,,,,
 2026-07-31 18:33:45,stockr,2026-07-31,today,179.9,,,-1,down,Gas price prediction from Stockr
 2026-08-01 07:43:52,citynews,2026-07-31,history,179.9,,,,,
 2026-07-30 18:37:23,stockr,2026-07-30,today,175.9,,,4,up,Gas price prediction from Stockr
