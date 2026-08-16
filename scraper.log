@@ -9421,3 +9421,27 @@
 2026-08-16 06:50:22,893 [INFO]   CityNews 历史: 15 条
 2026-08-16 06:50:22,893 [INFO]   CityNews 完成
 2026-08-16 06:50:22,895 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-08-16 09:54:01,197 [INFO] ==================================================
+2026-08-16 09:54:01,197 [INFO] 开始抓取  2026-08-16 09:54:01.197199
+2026-08-16 09:54:01,197 [INFO] ==================================================
+2026-08-16 09:54:01,197 [INFO] → 抓取 gaswizard.ca ...
+2026-08-16 09:54:02,510 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (166966b)
+2026-08-16 09:54:02,510 [INFO]   GasWizard 找到 2 个 li
+2026-08-16 09:54:02,544 [INFO]   油品: regular, 价格: '170.9+3Â¢'
+2026-08-16 09:54:02,545 [WARNING]   GasWizard [today]: 部分油品缺失，跳过
+2026-08-16 09:54:02,545 [INFO]   油品: regular, 价格: '167.9-1Â¢'
+2026-08-16 09:54:02,545 [WARNING]   GasWizard [yesterday]: 部分油品缺失，跳过
+2026-08-16 09:54:02,545 [INFO]   GasWizard 完成，写入 0 条
+2026-08-16 09:54:02,546 [INFO] → 抓取 stockr.net ...
+2026-08-16 09:54:04,315 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-08-16 09:54:04,326 [INFO]   Stockr Tomorrow: 168.9¢ @ 2026-08-17
+2026-08-16 09:54:04,339 [INFO]   Stockr [today] 2026-08-16: 170.9¢ (-2 down)
+2026-08-16 09:54:04,340 [INFO]   Stockr [tomorrow] 2026-08-17: 168.9¢ (-2 down)
+2026-08-16 09:54:04,340 [INFO]   Stockr 完成
+2026-08-16 09:54:04,341 [INFO] → 抓取 toronto.citynews.ca ...
+2026-08-16 09:54:04,341 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-08-16 09:54:11,039 [INFO]   CityNews: 预测8.16日均价170.9 cent(s)/litre，上涨2.0¢
+2026-08-16 09:54:11,041 [INFO]   CityNews 已写入: 2026-08-16 price=170.9 dir=up
+2026-08-16 09:54:11,074 [INFO]   CityNews 历史: 15 条
+2026-08-16 09:54:11,074 [INFO]   CityNews 完成
+2026-08-16 09:54:11,076 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
