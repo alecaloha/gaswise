@@ -1,12 +1,12 @@
 ﻿scraped_at,source,price_date,label,regular,premium,diesel,regular_chg,direction,summary
-2026-10-03 10:48:57,stockr,2026-10-04,tomorrow,186.9,,,-4,down,Gas price prediction from Stockr
-2026-10-03 10:49:06,citynews,2026-10-04,prediction,187.9,,,-3.0,down,预测10.4日均价187.9 cent(s)/litre，下降3.0¢
-2026-10-03 10:48:57,stockr,2026-10-03,today,190.9,,,-4,down,Gas price prediction from Stockr
-2026-10-03 10:49:06,citynews,2026-10-03,history,190.9,,,,,
+2026-10-03 14:47:33,stockr,2026-10-04,tomorrow,186.9,,,-4,down,Gas price prediction from Stockr
+2026-10-03 14:47:40,citynews,2026-10-04,prediction,187.9,,,-3.0,down,预测10.4日均价187.9 cent(s)/litre，下降3.0¢
+2026-10-03 14:47:33,stockr,2026-10-03,today,190.9,,,-4,down,Gas price prediction from Stockr
+2026-10-03 14:47:40,citynews,2026-10-03,history,190.9,,,,,
 2026-10-02 18:28:00,stockr,2026-10-02,today,183.9,,,7,up,Gas price prediction from Stockr
-2026-10-03 10:49:06,citynews,2026-10-02,history,184.9,,,,,
+2026-10-03 14:47:40,citynews,2026-10-02,history,184.9,,,,,
 2026-10-01 18:50:54,stockr,2026-10-01,today,177.9,,,6,up,Gas price prediction from Stockr
-2026-10-03 10:49:06,citynews,2026-10-01,history,178.9,,,,,
+2026-10-03 14:47:40,citynews,2026-10-01,history,178.9,,,,,
 2026-09-30 18:30:13,stockr,2026-09-30,today,178.9,,,-1,down,Gas price prediction from Stockr
 2026-10-02 18:28:09,citynews,2026-09-30,history,180.9,,,,,
 2026-09-29 18:31:41,stockr,2026-09-29,today,180.9,,,-2,down,Gas price prediction from Stockr
