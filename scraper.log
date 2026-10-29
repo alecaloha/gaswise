@@ -14793,3 +14793,22 @@
 2026-10-29 13:02:18,621 [INFO]   CityNews 历史: 29 条
 2026-10-29 13:02:18,621 [INFO]   CityNews 完成
 2026-10-29 13:02:18,624 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
+2026-10-29 18:55:10,159 [INFO] ==================================================
+2026-10-29 18:55:10,159 [INFO] 开始抓取  2026-10-29 18:55:10.159658
+2026-10-29 18:55:10,159 [INFO] ==================================================
+2026-10-29 18:55:10,159 [INFO] → 抓取 gaswizard.ca ...
+2026-10-29 18:55:20,806 [INFO]   GasWizard OK: https://gaswizard.trustyalec.workers.dev (16b)
+2026-10-29 18:55:20,806 [WARNING]   GasWizard: 未找到 ul.single-city-prices
+2026-10-29 18:55:20,807 [INFO] → 抓取 stockr.net ...
+2026-10-29 18:55:23,975 [INFO]   Stockr Playwright OK: https://stockr.trustyalec.workers.dev
+2026-10-29 18:55:23,991 [INFO]   Stockr Tomorrow: 172.9¢ @ 2026-10-30
+2026-10-29 18:55:23,994 [INFO]   Stockr [today] 2026-10-29: 171.9¢ (+1 up)
+2026-10-29 18:55:23,997 [INFO]   Stockr [tomorrow] 2026-10-30: 172.9¢ (+1 up)
+2026-10-29 18:55:23,997 [INFO]   Stockr 完成
+2026-10-29 18:55:23,997 [INFO] → 抓取 toronto.citynews.ca ...
+2026-10-29 18:55:23,997 [INFO]   先访问首页获取 Cloudflare cookie ...
+2026-10-29 18:55:28,680 [INFO]   CityNews: 预测10.30日均价175.9 cent(s)/litre，上涨1.0¢
+2026-10-29 18:55:28,683 [INFO]   CityNews 已写入: 2026-10-30 price=175.9 dir=up
+2026-10-29 18:55:28,749 [INFO]   CityNews 历史: 29 条
+2026-10-29 18:55:28,749 [INFO]   CityNews 完成
+2026-10-29 18:55:28,751 [INFO] 完成。数据存入 /home/runner/work/gaswise/gaswise/gas_prices.csv
